@@ -31,7 +31,7 @@
 			prev: 'yass-nav-prev'
 		};
 		
-	$.fn.slideshow = function (method) {
+	$.fn.yass = function (method) {
 		var 
 			//elements
 			$yass = this,
@@ -95,7 +95,7 @@
 		}
 
 		function scrollTo(targetElem) {
-			scroll(targetElem.position()[scrollDirection]);
+			scroll($(targetElem).position()[scrollDirection]);
 		}
 
 		function scrollBy(delta) {

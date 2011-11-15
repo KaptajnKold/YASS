@@ -5,6 +5,8 @@
 	YASS.js -- Yet Another Slideshow
 	by Adam Lett
 	
+	Version: 0.0.1
+	
 	Dependencies:
 	- jQuery
 	- modenizr

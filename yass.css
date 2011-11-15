@@ -1,0 +1,16 @@
+.yass-viewport {
+	overflow:hidden;
+	white-space: nowrap;
+	position:relative;
+}
+.yass-content {
+	position:relative;
+}
+
+/*
+Next and prev requires javascript
+*/
+.no-js .yass-next,
+.no-js .yass-prev {
+	display: none;
+}

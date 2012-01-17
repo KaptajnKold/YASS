@@ -15,7 +15,6 @@
 	TODO:
 	- Plugin should be able to handle multible slideshows.
 	- Selectors for the plugins elements should be overridable.
-	- Test page show casing plugins capabilities.
 	- Use 3D transforms on supported browsers
 	
 */

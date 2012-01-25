@@ -21,13 +21,12 @@
 ;(function ($, win) {
 	'use strict';
 	var
+		prefixes = 'Webkit Moz O Ms Khtml'.split(' '),
 		translatePattern = /\d+/, // matches the number part of 'translate(300px)'
 		$html = $('html'),
-		
-		//TODO: These should obviously depend on the browser
-		cssTransformProperty = '-webkit-transform',
-		cssTransitionProperty = '-webkit-transform',
-		
+		cssTransformProperty,
+		cssTransitionProperty,
+		vendorPrefix,
 		cssTransformsSupported = $html.hasClass('csstransforms'),
 		cssTransitionsSupported = $html.hasClass('csstransitions'),
 		cssClasses = {
@@ -35,7 +34,39 @@
 			next: 'yass-nav-next',
 			prev: 'yass-nav-prev'
 		};
-		
+	
+	// Source: http://lea.verou.me/2009/02/find-the-vendor-prefix-of-the-current-browser/	
+	function getVendorPrefix()
+	{
+		var regex = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/;
+
+		var someScript = document.getElementsByTagName('script')[0];
+
+		for(var prop in someScript.style)
+		{
+			if(regex.test(prop))
+			{
+				// test is faster than match, so it's better to perform
+				// that on the lot and match only when necessary
+				return prop.match(regex)[0];
+			}
+
+		}
+
+		// Nothing found so far? Webkit does not enumerate over the CSS properties of the style object.
+		// However (prop in style) returns the correct value, so we'll have to test for
+		// the precence of a specific property
+		if('WebkitOpacity' in someScript.style) return 'Webkit';
+		if('KhtmlOpacity' in someScript.style) return 'Khtml';
+
+		return '';
+	}
+	
+	vendorPrefix = getVendorPrefix(),
+	cssTransformProperty = vendorPrefix + 'Transform',
+	cssTransitionProperty = vendorPrefix + 'Transform',
+	
+	
 	$.fn.yass = function (method) {
 		var 
 			//elements
@@ -55,7 +86,9 @@
 			methods = {},
 			
 			scrollPos = cssTransformsSupported ? function () {
-				var match = $content[0].style[cssTransformProperty].match(translatePattern);
+				var 
+					style = $content[0].style[cssTransformProperty] || '',
+					match = style.match(translatePattern);
 				return match ? Number(match[0]): 0;
 			} : function () {
 				return -parseInt($content[0].style[scrollDirection], 10) || 0;
@@ -66,7 +99,7 @@
 			} : function (pos) {
 				$content.css(scrollDirection, -pos);
 			};
-			
+					
 		function pageCount() {
 			return $content[size]() / pageSize;
 		}

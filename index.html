@@ -66,6 +66,20 @@
 			-webkit-transition-property: left -webkit-transform;
 			-webkit-transition-duration: .5s;
 			-webkit-transition-function: ease-in;
+			-moz-transition-property: left -moz-transform;
+			-moz-transition-duration: .5s;
+			-moz-transition-function: ease-in;
+			-o-transition-property: left -o-transform;
+			-o-transition-duration: .5s;
+			-o-transition-function: ease-in;
+			-ms-transition-property: left -ms-transform;
+			-ms-transition-duration: .5s;
+			-ms-transition-function: ease-in;
+			transition-property: left transform;
+			transition-duration: .5s;
+			transition-function: ease-in;
+			
+			
 			display: inline-block; white-space: nowrap;
 		}
 
@@ -97,6 +111,19 @@
 			-webkit-transition-property: left right opacity;
 			-webkit-transition-duration: .2s;
 			-webkit-transition-function: ease-in;
+			-moz-transition-property: left right opacity;
+			-moz-transition-duration: .2s;
+			-moz-transition-function: ease-in;
+			-o-transition-property: left right opacity;
+			-o-transition-duration: .2s;
+			-o-transition-function: ease-in;
+			-ms-transition-property: left right opacity;
+			-ms-transition-duration: .2s;
+			-ms-transition-function: ease-in;
+			transition-property: left right opacity;
+			transition-duration: .2s;
+			transition-function: ease-in;
+			
 		}
 		
 		.yass-nav-prev:active, 
@@ -145,7 +172,7 @@
 	<section id="yass-example">
 	    <h1>Yass Example</h1>
 	    <div class="yass-viewport">
-	      <ul class="yass-content hlist" style="-webkit-transform: translateX(-600px); "><li>
+	      <ul class="yass-content hlist"><li>
 	          <img src="http://comicrelated.com/artwork/judge_dredd.jpg">
 	        </li><li>
 	          <img src="http://1.bp.blogspot.com/-mDWU9VqVAZw/TmZAxDDjbAI/AAAAAAAAKwY/vRUWKIQEx4U/s1600/batman-and-robin-screen-2.jpg">
@@ -160,7 +187,6 @@
 	  </section>
 	
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-	<script src="util.js"></script>
 	<script src="yass.js"></script>
 	<script type="text/javascript" charset="utf-8">
 		$('#yass-example').yass();

@@ -5,7 +5,7 @@ YASS.js
 
 By Adam Lett
 
-Version: 0.0.1
+Version: 0.0.3
 
 Dependencies:
 - jQuery

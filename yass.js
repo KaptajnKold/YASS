@@ -5,12 +5,11 @@
 	YASS.js -- Yet Another Slideshow
 	by Adam Lett
 	
-	Version: 0.0.1
+	Version: 0.0.2
 	
 	Dependencies:
 	- jQuery
 	- modenizr
-	- util.js
 	
 	TODO:
 	- Plugin should be able to handle multible slideshows.
@@ -66,8 +65,8 @@
 				$content.css(cssTransformProperty, 'translateX(' + (-pos) + 'px)');
 			} : function (pos) {
 				$content.css(scrollDirection, -pos);
-			};	
-		
+			};
+			
 		function pageCount() {
 			return $content[size]() / pageSize;
 		}
@@ -131,7 +130,7 @@
 		}
 
 		function scrollPage(n) {
-			var page = (currentPage() + n).round();
+			var page = Math.round(currentPage() + n);
 			if (page < 0) {
 				scroll(0);
 			} else if (page > pageCount) {

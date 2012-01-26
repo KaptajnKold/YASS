@@ -8,9 +8,8 @@ By Adam Lett
 Version: 0.0.3
 
 Dependencies:
-- jQuery
-- modenizr
-- util.js
+* jQuery
+* modenizr
 
 This plugin depends on features in EcmaScript 5. 
 If you need to support a browser that does not off ES5 support, 

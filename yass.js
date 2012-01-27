@@ -29,10 +29,29 @@
 		vendorPrefix,
 		cssTransformsSupported = $html.hasClass('csstransforms'),
 		cssTransitionsSupported = $html.hasClass('csstransitions'),
+		
+		transitionEndEvents = {
+			Webkit: 'webkitTransitionEnd',
+			Moz: 'transitionend',
+			O: 'oTransitionEnd',
+			Ms: 'msTransitionEnd',
+			'': 'transitionend'
+		},
+		
+		transitionEndEvent,
+		
 		cssClasses = {
-			disabled: 'yass-disabled',
-			next: 'yass-nav-next',
-			prev: 'yass-nav-prev'
+			disabled: 'yass-disabled'
+		},
+		
+		defaultSelectors = {
+			content: '.yass-content',
+			noContent: '.yass-no-content',
+			viewport: '.yass-viewport',
+			next: '.yass-nav-next',
+			prev: '.yass-nav-prev',
+			nav: 'nav',
+			paging: 'ul,ol'
 		};
 	
 	// Source: http://lea.verou.me/2009/02/find-the-vendor-prefix-of-the-current-browser/	
@@ -65,25 +84,30 @@
 	vendorPrefix = getVendorPrefix(),
 	cssTransformProperty = vendorPrefix + 'Transform',
 	cssTransitionProperty = vendorPrefix + 'Transform',
+	transitionEndEvent = transitionEndEvents[vendorPrefix] || transitionEndEvents[''];
 	
 	
 	$.fn.yass = function (method) {
 		var 
 			//elements
 			$yass = this,
-			$viewport = $('.yass-viewport', this),
-			$content = $('.yass-content', this),
-			$noContent = $(".yass-no-content", this),
-			$nav = $('nav', this),
-			$pagingLinks = $('ul,ol', $nav),
-			$prev = $('.' + cssClasses.prev, this),
-			$next = $('.' + cssClasses.next, this),
+			selectors = $.extend({}, defaultSelectors, $.fn.yass.selectors),
+			$viewport = $(selectors.viewport, this),
+			$content = $(selectors.content, this),
+			$noContent = $(selectors.noContent, this),
+			$nav = $(selectors.nav, this),
+			$pagingLinks = $(selectors.paging, $nav),
+
+			$prev = $(selectors.prev, this),
+			$next = $(selectors.next, this),
 
 			pageLinkHTML = $nav.hasClass('numbers') ? '<li class="link-to-page">{page}</li>' : '<li class="dot" title="{page}">&nbsp;</li>',
 			scrollDirection = this.hasClass("vertical-paging") ? "top" : "left",
 			size = this.hasClass("vertical-paging") ? "height" : "width",
+			
 			pageSize = $viewport[size](),
-			methods = {},
+			
+			methods,
 			
 			scrollPos = cssTransformsSupported ? function () {
 				var 
@@ -259,7 +283,7 @@
 				scroll($(this).index() * pageSize);
 			});
 			if (cssTransitionsSupported) {
-				$content.bind('webkitTransitionEnd', updatePaging);
+				$content.bind(transitionEndEvent, updatePaging);
 			} else {
 				$yass.bind('scroll', updatePaging);
 			}
@@ -282,4 +306,6 @@
 		}
 		return init.apply(this, arguments);
 	};
+	
+	$.fn.yass.selectors = {};
 } (jQuery, window));

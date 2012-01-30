@@ -3,26 +3,32 @@
 
 /*
 	YASS.js -- Yet Another Slideshow
-	by Adam Lett
+	Copyright 2011–2012 Adam Lett
+	Licenced under the MIT license: http://www.opensource.org/licenses/mit-license.php
 	
-	Version: 0.0.3
+	Version: 0.0.4
 	
 	Dependencies:
-	- jQuery
-	- modenizr
+	* EcmaScript 5
+	* jQuery (v1.6 testet)
+	* Modernizr. Specifically, the plugin relies on these classes that Modernizr sets on the html tag:
+		* touch
+		* csstransforms
+		* csstransitions
 	
 	TODO:
 	- Plugin should be able to handle multible slideshows.
 	- Selectors for the plugins elements should be overridable.
-	- Use 3D transforms on supported browsers
 	
 */
 
 ;(function ($, win) {
+	
 	'use strict';
+	
 	var
 		prefixes = 'Webkit Moz O Ms Khtml'.split(' '),
-		translatePattern = /\d+/, // matches the number part of 'translate(300px)'
+		translatePattern = /-?\d+/, // matches the number part of 'translate(300px)'
 		$html = $('html'),
 		cssTransformProperty,
 		cssTransitionProperty,
@@ -41,7 +47,7 @@
 		transitionEndEvent,
 		
 		cssClasses = {
-			disabled: 'yass-disabled'
+			disabled: 'yass-disabled',
 		},
 		
 		defaultSelectors = {
@@ -51,25 +57,29 @@
 			next: '.yass-nav-next',
 			prev: '.yass-nav-prev',
 			nav: 'nav',
-			paging: 'ul,ol'
-		};
+			paging: 'ul,ol',
+			currentPage: '.yass-current-page',
+			totalPages: '.yass-total-pages',
+			verticalPaging: '.vertical-paging',
+			numberedPaging: '.numbers'
+		},
+		
+		isTouchScreen = $html.hasClass('touch'),
+		buttonEvent = isTouchScreen ? 'touchstart' : 'click';
 	
 	// Source: http://lea.verou.me/2009/02/find-the-vendor-prefix-of-the-current-browser/	
-	function getVendorPrefix()
-	{
-		var regex = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/;
+	function getVendorPrefix () {
+		var 
+			prefixPattern = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/,
+			someScript = document.getElementsByTagName('script')[0],
+			prop;
 
-		var someScript = document.getElementsByTagName('script')[0];
-
-		for(var prop in someScript.style)
-		{
-			if(regex.test(prop))
-			{
+		for(prop in someScript.style) {
+			if(prefixPattern.test(prop)) {
 				// test is faster than match, so it's better to perform
 				// that on the lot and match only when necessary
-				return prop.match(regex)[0];
+				return prop.match(prefixPattern)[0];
 			}
-
 		}
 
 		// Nothing found so far? Webkit does not enumerate over the CSS properties of the style object.
@@ -97,13 +107,17 @@
 			$noContent = $(selectors.noContent, this),
 			$nav = $(selectors.nav, this),
 			$pagingLinks = $(selectors.paging, $nav),
-
 			$prev = $(selectors.prev, this),
 			$next = $(selectors.next, this),
+			$currentPage = $(selectors.currentPage),
+			$totalPages = $(selectors.totalPages),
 
-			pageLinkHTML = $nav.hasClass('numbers') ? '<li class="link-to-page">{page}</li>' : '<li class="dot" title="{page}">&nbsp;</li>',
-			scrollDirection = this.hasClass("vertical-paging") ? "top" : "left",
-			size = this.hasClass("vertical-paging") ? "height" : "width",
+			pageLinkHTML = $nav.is(selectors.numberedPaging) ? '<li class="link-to-page">{page}</li>' : '<li class="dot" title="{page}">&nbsp;</li>',
+			
+			verticalPaging = this.is(selectors.verticalPaging),
+			scrollDirection = verticalPaging ? 'top' : 'left',
+			size = verticalPaging ? 'height' : 'width',
+			translationDirection = verticalPaging ? 'translateY' : 'translateX',
 			
 			pageSize = $viewport[size](),
 			
@@ -113,58 +127,64 @@
 				var 
 					style = $content[0].style[cssTransformProperty] || '',
 					match = style.match(translatePattern);
-				return match ? Number(match[0]): 0;
+					
+				return match ? -Number(match[0]): 0;
 			} : function () {
 				return -parseInt($content[0].style[scrollDirection], 10) || 0;
 			},
 			
 			setScrollPos = cssTransformsSupported ? function (pos) {
-				$content.css(cssTransformProperty, 'translateX(' + (-pos) + 'px)');
+				$content.css(cssTransformProperty, translationDirection + '(' + (-pos) + 'px)');
 			} : function (pos) {
 				$content.css(scrollDirection, -pos);
 			};
 					
-		function pageCount() {
+		function pageCount () {
 			return $content[size]() / pageSize;
 		}
 
-		function currentPage() {
+		function currentPage () {
 			return scrollPos() / pageSize;
 		}
 
-		function updatePaging() {
+		function updatePaging () {
+			var 
+				current = Math.ceil(currentPage()) + 1,
+				total = Math.ceil(pageCount());
 			$('li.current', $nav).removeClass('current');
-			$('li:nth-child(' + (Math.ceil(currentPage()) + 1) + ')', $nav).addClass("current");
-			if (currentPage() === pageCount() - 1) {
-				$next.addClass(cssClasses.disabled);
-			} else {
-				$next.removeClass(cssClasses.disabled);
-			}
-			if (currentPage() === 0) {
-				$prev.addClass(cssClasses.disabled);
-			} else {
-				$prev.removeClass(cssClasses.disabled);
-			}
+			$('li:nth-child(' + current + ')', $nav).addClass('current');
 			
+			$prev.toggleClass(cssClasses.disabled, current === 1);
+			$next.toggleClass(cssClasses.disabled, current === total);
+			
+			$currentPage.text(current);
+			$totalPages.text(total);
 		}
 		
 		function scroll (targetPos) {
-			var pos = scrollPos();
-			targetPos = pos < targetPos ? Math.min( targetPos, $content[size]() - pageSize ) : targetPos;
+			var 
+				maxScroll = $content[size]() - pageSize,
+				pos = scrollPos();
+			if (targetPos < 0) {
+				targetPos = -Math.round(Math.pow(-targetPos, 4/5));
+			} else if ( targetPos > maxScroll) {
+				targetPos = maxScroll + Math.round(Math.pow(targetPos - maxScroll, 4/5));
+			}
+			//targetPos = pos < targetPos ? Math.min( targetPos, $content[size]() - pageSize ) : targetPos;
 			if ( pos === targetPos ) { return; }
 			setScrollPos(targetPos);
-			$yass.trigger("scroll");
+			$yass.trigger('scroll');
 		}
 
-		function scrollTo(targetElem) {
+		function scrollTo (targetElem) {
 			scroll($(targetElem).position()[scrollDirection]);
 		}
 
-		function scrollBy(delta) {
+		function scrollBy (delta) {
 			scroll(scrollPos() + delta);
 		}
 
-		function scrollIntoView(target) {
+		function scrollIntoView (target) {
 			var 
 				viewportEdge = scrollPos(),
 				targetEdge = $(target).position()[scrollDirection],
@@ -186,7 +206,7 @@
 			}
 		}
 
-		function scrollPage(n) {
+		function scrollPage (n) {
 			var page = Math.round(currentPage() + n);
 			if (page < 0) {
 				scroll(0);
@@ -197,15 +217,16 @@
 			}
 		}
 
-		function next() {
+		function next () {
 			scrollPage(1);
 		}
 
-		function prev() {
+		function prev () {
 			scrollPage(-1);
 		}
 
-		function renderNav() {
+		function renderNav () {
+			updatePaging();
 			if ($pagingLinks.length === 0) { return; }
 			var 
 				wholePages = Math.ceil(pageCount()),
@@ -215,79 +236,120 @@
 					pagingHTML += pageLinkHTML.supplant({ 'page': i + 1 });
 				});
 				$pagingLinks.html(pagingHTML);
-				updatePaging();
 				$nav.show();
 			} else {
 				$nav.hide();
 			}
 		}
 
-		function toggleContentNoContent() {
+		function toggleContentNoContent () {
 			$noContent.hide();
 			$content.show();
-			if ($(":visible", $content).length === 0) {
+			if ($(':visible', $content).length === 0) {
 				$content.hide();
 				$noContent.show();
 			}
 		}
 
-		function refresh() {
+		function refresh () {
 			toggleContentNoContent();
 			renderNav.apply(this);
 			scroll(0);
 		}
 
-		function content($content) {
-			$content.empty().append($content).show();
+		function content ($freshContent) {
+			$content.empty().append($freshContent).show();
 			refresh();
 		}
 		
 		function initTouch () {
-			var 
-				startX, startY, startScroll,
-				turnOffAnimation = $content.css.bind($content, cssTransitionProperty, 'none'),
-				turnOnAnimation = $content.css.bind($content, cssTransitionProperty, '');
+			var startX, startY, startScroll, throttleTimer = 0;
 			
 			function touchStart (e) {
-				turnOffAnimation();
+				e.preventDefault();
+				$content.css('-webkit-transition-property', 'none');
 				startX = e.originalEvent.targetTouches[0].pageX;
 				startY = e.originalEvent.targetTouches[0].pageY;
 				startScroll = scrollPos();
 			}
 			function touchMove (e) {
+				var now;
+				e.preventDefault();
+				now = new Date().getTime();
+				//if (now - throttleTimer < 10) return; 
+				throttleTimer = now;
 				var deltaX = startX - e.originalEvent.targetTouches[0].pageX;
-				startX = e.originalEvent.targetTouches[0].pageX;
-				scrollBy(deltaX);
+				scroll(startScroll + deltaX);
 			}
 			function touchEnd () {
-				turnOnAnimation();
-				if (startX) { scrollPage(0); }
+				$content.css('-webkit-transition-property', '');
+				scrollPage(0);
 				startX = null;
 			}
 			$content.bind('touchstart', touchStart);
 			$content.bind('touchmove', touchMove);
 			$content.bind('touchend', touchEnd);
 		}
+		
+		function initFakeTouch () {
+			var startX, startY, startScroll, throttleTimer = 0;
+			
+			function touchStart (e) {
+				e.preventDefault();
+				$content.bind('mousemove', touchMove);
+				startX = e.pageX;
+				startY = e.pageY;
+				startScroll = scrollPos();
+			}
+			function touchMove (e) {
+				var now;
+				e.preventDefault();
+				now = new Date().getTime();
+				if (now - throttleTimer < 60) return; 
+				throttleTimer = now;
+				var deltaX = startX - e.pageX;
+				scroll(startScroll + deltaX);
+			}
+			function touchEnd () {
+				$content.unbind('mousemove', touchMove);
+				scrollPage(0);
+				startX = null;
+			}
+			
+			
+			$content.bind('mousedown', touchStart);
+			$content.bind('mouseup', touchEnd);
+		}
 
 		function init() {
-			initTouch();
-			$next.click(function (e) {
+			if (isTouchScreen) {
+				initTouch();
+			} else {
+				initFakeTouch();
+			}
+			
+			$next.bind(buttonEvent, function (e) {
 				e.preventDefault();
 				next();
 			});
-			$prev.click(function (e) {
+			
+			$prev.bind(buttonEvent, function (e) {
 				e.preventDefault();
 				prev();
 			});
-			$nav.delegate("li", "click", function (e) {
+			
+			$nav.delegate('li', buttonEvent, function (e) {
 				scroll($(this).index() * pageSize);
 			});
+			
 			if (cssTransitionsSupported) {
 				$content.bind(transitionEndEvent, updatePaging);
 			} else {
 				$yass.bind('scroll', updatePaging);
 			}
+			
 			refresh();
+			
 			return this;
 		}
 

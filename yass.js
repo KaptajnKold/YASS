@@ -8,7 +8,7 @@
 	Copyright 2011–2012 Adam Lett
 	Licenced under the MIT license: http://www.opensource.org/licenses/mit-license.php
 	
-	Version: 0.1.0
+	Version: 0.2.0
 	
 	Dependencies:
 	-------------
@@ -106,12 +106,17 @@
 	
 	function Yass (el, options) {
 		
+		/*
+			options:
+			
+			* selectors
+		*/
 		options || (options = {});
 		
 		var 
 			//elements
 			$el = $(el),
-			selectors = $.extend({}, defaultSelectors, $.fn.yass.selectors),
+			selectors = $.extend({}, defaultSelectors, $.fn.yass.selectors, (options.selectors || {})),
 			$viewport = $(selectors.viewport, $el),
 			$content = $(selectors.content, $el),
 			$noContent = $(selectors.noContent, $el),
@@ -372,12 +377,10 @@
 	}
 	
 	$.fn.yass = function (method) {
-		
+		var firstArgument = arguments[0];
+
 		this.each(function () {
-			var 
-				plugin = !$(this).data('yass'),
-				firstArgument = arguments[0];
-				
+			var plugin = !$(this).data('yass');
 			if (plugin && typeof firstArgument === 'string' && typeof plugin[firstArgument] === "function") {
 				plugin[firstArgument].apply(plugin, [].slice.call(arguments, 1));
 			} else {

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta charset="utf-8">
+	<title>Yass Example: Multiple Sliders</title>
+	<link rel="stylesheet" href="../yass.css">
+	<link rel="stylesheet" href="https://raw.github.com/necolas/normalize.css/master/normalize.css" type="text/css">
+	<style>
+		.naked-list		{ list-style: none; margin: 0 0; padding: 0 0; }
+
+		.hlist			{ white-space: nowrap; }
+		.hlist,
+		.hlist > li		{ display: inline-block; }
+	
+		.yass-example	{ margin-left: auto; margin-right: auto; }
+		
+		.yass-example	{ width: 600px; }
+
+		.yass-content {
+			-webkit-transition-property: left -webkit-transform;
+			-webkit-transition-duration: .5s;
+			-webkit-transition-function: ease-in;
+			-moz-transition-property: left -moz-transform;
+			-moz-transition-duration: .5s;
+			-moz-transition-function: ease-in;
+			-o-transition-property: left -o-transform;
+			-o-transition-duration: .5s;
+			-o-transition-function: ease-in;
+			-ms-transition-property: left -ms-transform;
+			-ms-transition-duration: .5s;
+			-ms-transition-function: ease-in;
+			transition-property: left transform;
+			transition-duration: .5s;
+			transition-function: ease-in;
+		}
+		
+		.yass-viewport,
+		.yass-content > li		{ height: 400px; width: 600px; }
+		.yass-content > li 		{ background-color: black; text-align: center; }
+		.yass-content > li img 	{ max-width: 600px; max-height: 400px; }
+
+		.yass-nav-prev, 
+		.yass-nav-next {
+			height: 38px;
+			width: 58px;
+			display: block;
+			border: 1px solid white;
+			position:absolute;
+			top: 0;
+			line-height:38px;
+			text-align:center;
+			opacity: 0;
+			color:white;
+			background:black;
+			text-decoration: none;
+			top:50%;
+			margin-top: -20px;
+			-webkit-transition-property: left right opacity;
+			-webkit-transition-duration: .2s;
+			-webkit-transition-function: ease-in;
+			-moz-transition-property: left right opacity;
+			-moz-transition-duration: .2s;
+			-moz-transition-function: ease-in;
+			-o-transition-property: left right opacity;
+			-o-transition-duration: .2s;
+			-o-transition-function: ease-in;
+			-ms-transition-property: left right opacity;
+			-ms-transition-duration: .2s;
+			-ms-transition-function: ease-in;
+			transition-property: left right opacity;
+			transition-duration: .2s;
+			transition-function: ease-in;
+			
+		}
+		
+		.yass-nav-prev:active, 
+		.yass-nav-next:active	{ color:black; background-color:white; border-color: black; }
+
+		.yass-nav-prev			{ left: -60px; float: left; }
+		.yass-nav-next			{ right: -60px; float: right; }
+		
+		.yass-viewport:hover .yass-nav-prev,
+		.yass-viewport:hover .yass-nav-next					{ opacity: 0.5; }
+
+		.yass-viewport:hover .yass-nav-prev 				{ left: 0px; }
+		.yass-viewport:hover .yass-nav-next 				{ right: 0px; }
+		
+		.yass-viewport:hover .yass-nav-prev:hover,
+		.yass-viewport:hover .yass-nav-next:hover 			{ opacity: 1; }
+		
+		.yass-viewport:hover .yass-nav-prev.yass-disabled,
+		.yass-viewport:hover .yass-nav-next.yass-disabled	{ opacity: 0; }
+
+		.yass-viewport:hover .yass-nav-prev.yass-disabled	{ left: -60px; }
+
+		.yass-viewport:hover .yass-nav-next.yass-disabled	{ right: -60px; }
+		
+		.touch .yass-nav-next,
+		.touch .yass-nav-prev	{ display: none; }
+	</style>
+	
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+	<section class="yass-example">
+		<h1>Slider #1</h1>
+		<div class="yass-viewport">
+			<ul class="yass-content hlist naked-list"><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Squash_bug_Coreidae_hz.jpg/640px-Squash_bug_Coreidae_hz.jpg">
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Trichoglossus_haematodus_-Jurong_Bird_Park%2C_Singapore_-Dec2009.jpg/1024px-Trichoglossus_haematodus_-Jurong_Bird_Park%2C_Singapore_-Dec2009.jpg">
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Eumecesfasciatus.jpg/640px-Eumecesfasciatus.jpg">
+			</li></ul>
+			<a class="yass-nav-prev" href="#">◀</a>
+			<a class="yass-nav-next" href="#">▶</a>
+		</div>
+	  </section>
+	<section class="yass-example">
+		<h1>Slider #2</h1>
+		<div class="yass-viewport">
+			<ul class="yass-content hlist naked-list"><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Crab_Nebula.jpg/600px-Crab_Nebula.jpg" />
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/8/81/NGC602.jpg/614px-NGC602.jpg" />
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/NGC7293_%282004%29.jpg/600px-NGC7293_%282004%29.jpg" />
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Antennae_galaxies_xl.jpg/604px-Antennae_galaxies_xl.jpg" />
+			</li></ul>
+			<a class="yass-nav-prev" href="#">◀</a>
+			<a class="yass-nav-next" href="#">▶</a>
+		</div>
+	</section>
+	  
+	
+	<script src="https://raw.github.com/kriskowal/es5-shim/master/es5-shim.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="../yass.js"></script>
+	<script type="text/javascript" charset="utf-8">
+		$('.yass-example').yass();
+	</script>
+</body>

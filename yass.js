@@ -3,22 +3,30 @@
 
 /*
 	YASS.js -- Yet Another Slideshow
+	================================
+	
 	Copyright 2011–2012 Adam Lett
 	Licenced under the MIT license: http://www.opensource.org/licenses/mit-license.php
 	
-	Version: 0.0.4
+	Version: 0.1.0
 	
 	Dependencies:
+	-------------
+	
 	* EcmaScript 5
+	
 	* jQuery (v1.6 testet)
+	
 	* Modernizr. Specifically, the plugin relies on these classes that Modernizr sets on the html tag:
+		
 		* touch
 		* csstransforms
 		* csstransitions
 	
 	TODO:
-	- Plugin should be able to handle multible slideshows.
-	- Selectors for the plugins elements should be overridable.
+	-----
+	
+	* Selectors for the plugins elements should be overridable.
 	
 */
 
@@ -96,33 +104,33 @@
 	cssTransitionProperty = vendorPrefix + 'Transform',
 	transitionEndEvent = transitionEndEvents[vendorPrefix] || transitionEndEvents[''];
 	
-	
-	$.fn.yass = function (method) {
+	function Yass (el, options) {
+		
+		options || (options = {});
+		
 		var 
 			//elements
-			$yass = this,
+			$el = $(el),
 			selectors = $.extend({}, defaultSelectors, $.fn.yass.selectors),
-			$viewport = $(selectors.viewport, this),
-			$content = $(selectors.content, this),
-			$noContent = $(selectors.noContent, this),
-			$nav = $(selectors.nav, this),
+			$viewport = $(selectors.viewport, $el),
+			$content = $(selectors.content, $el),
+			$noContent = $(selectors.noContent, $el),
+			$nav = $(selectors.nav, $el),
 			$pagingLinks = $(selectors.paging, $nav),
-			$prev = $(selectors.prev, this),
-			$next = $(selectors.next, this),
+			$prev = $(selectors.prev, $el),
+			$next = $(selectors.next, $el),
 			$currentPage = $(selectors.currentPage),
 			$totalPages = $(selectors.totalPages),
 
 			pageLinkHTML = $nav.is(selectors.numberedPaging) ? '<li class="link-to-page">{page}</li>' : '<li class="dot" title="{page}">&nbsp;</li>',
 			
-			verticalPaging = this.is(selectors.verticalPaging),
+			verticalPaging = $el.is(selectors.verticalPaging),
 			scrollDirection = verticalPaging ? 'top' : 'left',
 			size = verticalPaging ? 'height' : 'width',
 			translationDirection = verticalPaging ? 'translateY' : 'translateX',
 			
 			pageSize = $viewport[size](),
-			
-			methods,
-			
+						
 			scrollPos = cssTransformsSupported ? function () {
 				var 
 					style = $content[0].style[cssTransformProperty] || '',
@@ -173,7 +181,7 @@
 			//targetPos = pos < targetPos ? Math.min( targetPos, $content[size]() - pageSize ) : targetPos;
 			if ( pos === targetPos ) { return; }
 			setScrollPos(targetPos);
-			$yass.trigger('scroll');
+			$el.trigger('scroll');
 		}
 
 		function scrollTo (targetElem) {
@@ -253,7 +261,7 @@
 
 		function refresh () {
 			toggleContentNoContent();
-			renderNav.apply(this);
+			renderNav();
 			scroll(0);
 		}
 
@@ -276,7 +284,7 @@
 				var now;
 				e.preventDefault();
 				now = new Date().getTime();
-				//if (now - throttleTimer < 10) return; 
+				if (now - throttleTimer < 10) return; 
 				throttleTimer = now;
 				var deltaX = startX - e.originalEvent.targetTouches[0].pageX;
 				scroll(startScroll + deltaX);
@@ -345,28 +353,40 @@
 			if (cssTransitionsSupported) {
 				$content.bind(transitionEndEvent, updatePaging);
 			} else {
-				$yass.bind('scroll', updatePaging);
+				$el.bind('scroll', updatePaging);
 			}
 			
 			refresh();
-			
-			return this;
 		}
 
-		methods = {
-			content: content,
-			scrollTo: scrollTo,
-			scrollIntoView: scrollIntoView,
-			prev: prev,
-			next: next,
-			refresh: refresh
-		};
-
-		if (this.length === 0) { return; }
-		if (methods[method]) {
-			return methods[method].apply(this, [].slice.call(arguments, 1));
-		}
-		return init.apply(this, arguments);
+		// Public methods;
+		this.content = content;
+		this.scrollTo = scrollTo;
+		this.scrollIntoView = scrollIntoView;
+		this.prev = prev;
+		this.next = next;
+		this.refresh = refresh;
+		
+		init();
+		return this;
+	}
+	
+	$.fn.yass = function (method) {
+		
+		this.each(function () {
+			var 
+				plugin = !$(this).data('yass'),
+				firstArgument = arguments[0];
+				
+			if (plugin && typeof firstArgument === 'string' && typeof plugin[firstArgument] === "function") {
+				plugin[firstArgument].apply(plugin, [].slice.call(arguments, 1));
+			} else {
+				plugin = new Yass(this, firstArgument);
+				$(this).data('yass', plugin);
+			}
+		});
+		
+		return this;
 	};
 	
 	$.fn.yass.selectors = {};

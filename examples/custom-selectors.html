@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>YASS.js Test Page</title>
+	<link rel="stylesheet" href="../yass.css">
+	<link rel="stylesheet" href="https://raw.github.com/necolas/normalize.css/master/normalize.css" type="text/css">
+	<style>
+		.naked-list		{ list-style: none; margin: 0 0; padding: 0 0; }
+
+		.hlist			{ white-space: nowrap; }
+		.hlist,
+		.hlist > li		{ display: inline-block; }
+	
+		.yass-example	{ margin-left: auto; margin-right: auto; }
+		
+		.yass-example	{ width: 600px; }
+
+		.content {
+			-webkit-transition-property: left -webkit-transform;
+			-webkit-transition-duration: .5s;
+			-webkit-transition-function: ease-in;
+			-moz-transition-property: left -moz-transform;
+			-moz-transition-duration: .5s;
+			-moz-transition-function: ease-in;
+			-o-transition-property: left -o-transform;
+			-o-transition-duration: .5s;
+			-o-transition-function: ease-in;
+			-ms-transition-property: left -ms-transform;
+			-ms-transition-duration: .5s;
+			-ms-transition-function: ease-in;
+			transition-property: left transform;
+			transition-duration: .5s;
+			transition-function: ease-in;
+		}
+		
+		.yass-viewport,
+		.content > li		{ height: 400px; width: 600px; }
+		.content > li 		{ background-color: black; text-align: center; }
+		.content > li img 	{ max-width: 600px; max-height: 400px; }
+
+		.prev, 
+		.next {
+			height: 38px;
+			width: 58px;
+			display: block;
+			border: 1px solid white;
+			position:absolute;
+			top: 0;
+			line-height:38px;
+			text-align:center;
+			opacity: 0;
+			color:white;
+			background:black;
+			text-decoration: none;
+			top:50%;
+			margin-top: -20px;
+			-webkit-transition-property: left right opacity;
+			-webkit-transition-duration: .2s;
+			-webkit-transition-function: ease-in;
+			-moz-transition-property: left right opacity;
+			-moz-transition-duration: .2s;
+			-moz-transition-function: ease-in;
+			-o-transition-property: left right opacity;
+			-o-transition-duration: .2s;
+			-o-transition-function: ease-in;
+			-ms-transition-property: left right opacity;
+			-ms-transition-duration: .2s;
+			-ms-transition-function: ease-in;
+			transition-property: left right opacity;
+			transition-duration: .2s;
+			transition-function: ease-in;
+			
+		}
+		
+		.prev:active, 
+		.next:active	{ color:black; background-color:white; border-color: black; }
+
+		.prev			{ left: -60px; float: left; }
+		.next			{ right: -60px; float: right; }
+		
+		.yass-viewport:hover .prev,
+		.yass-viewport:hover .next					{ opacity: 0.5; }
+
+		.yass-viewport:hover .prev 				{ left: 0px; }
+		.yass-viewport:hover .next 				{ right: 0px; }
+		
+		.yass-viewport:hover .prev:hover,
+		.yass-viewport:hover .next:hover 			{ opacity: 1; }
+		
+		.yass-viewport:hover .prev.yass-disabled,
+		.yass-viewport:hover .next.yass-disabled	{ opacity: 0; }
+
+		.yass-viewport:hover .prev.yass-disabled	{ left: -60px; }
+
+		.yass-viewport:hover .next.yass-disabled	{ right: -60px; }
+		
+		.touch .next,
+		.touch .prev	{ display: none; }
+	</style>
+
+	
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+	<section id="yass-example">
+		<h1>Yass Example</h1>
+		<p>
+			Overriding default selectors for required elements.
+		</p>
+		<div class="yass-viewport">
+			<ul class="content hlist naked-list"><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Squash_bug_Coreidae_hz.jpg/640px-Squash_bug_Coreidae_hz.jpg">
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Trichoglossus_haematodus_-Jurong_Bird_Park%2C_Singapore_-Dec2009.jpg/1024px-Trichoglossus_haematodus_-Jurong_Bird_Park%2C_Singapore_-Dec2009.jpg">
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Eumecesfasciatus.jpg/640px-Eumecesfasciatus.jpg">
+			</li></ul>
+			<a class="prev" href="#">◀</a>
+			<a class="next" href="#">▶</a>
+		</div>
+		<span class='yass-current-page'></span>
+		of
+		<span class='yass-total-pages'></span>
+		</section>
+	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+	<script src="../yass.js"></script>
+	<script type="text/javascript">
+		// Overriding selectors globally (for all instances of YASS created after this)
+		$.fn.yass.selectors = {
+			content: '.content'
+		}
+		
+		// Overriding selectors locally (Only for the instances created here)
+		$('#yass-example').yass({ selectors: {
+			next: '.next',
+			prev: '.prev'
+		}});
+	</script>
+</body>

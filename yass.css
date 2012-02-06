@@ -5,6 +5,12 @@
 }
 .yass-content {
 	position:relative;
+	
+	/*
+	This prevents transitions from flickering in Safari. See http://stackoverflow.com/a/3461770/7816
+	*/
+	-webkit-perspective: 1000;
+	-webkit-backface-visibility: hidden;
 }
 
 /*

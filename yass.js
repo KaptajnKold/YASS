@@ -6,9 +6,9 @@
 	================================
 	
 	Copyright 2011–2012 Adam Lett
-	Licenced under the MIT license: http://www.opensource.org/licenses/mit-license.php
+	License: MIT http://www.opensource.org/licenses/mit-license.php
 	
-	Version: 0.2.0
+	Version: 0.2.1
 	
 	Dependencies:
 	-------------
@@ -97,6 +97,16 @@
 		if('KhtmlOpacity' in someScript.style) return 'Khtml';
 
 		return '';
+	}
+	
+	function throttle (fn, context) {
+		var lastInvocation = 0, threshold = 10;
+		return function () {
+			var now = new Date().getTime();
+			if (now - lastInvocation > threshold) {
+				return fn.apply(context, arguments);
+			}
+		}
 	}
 	
 	vendorPrefix = getVendorPrefix(),
@@ -220,13 +230,15 @@
 		}
 
 		function scrollPage (n) {
-			var page = Math.round(currentPage() + n);
+			var 
+				page = currentPage() + n,
+				maxPageIndex = pageCount() - 1;
 			if (page < 0) {
 				scroll(0);
-			} else if (page > pageCount) {
-				scroll(page*pageCount);
+			} else if (page > maxPageIndex) {
+				scroll(maxPageIndex*pageSize);
 			} else {
-				scroll(page*pageSize);
+				scroll(Math.round(page)*pageSize);
 			}
 		}
 
@@ -276,69 +288,46 @@
 		}
 		
 		function initTouch () {
-			var startX, startY, startScroll, throttleTimer = 0;
+			// TODO: Support vertical scrolling
+			var initialX, latestDelta, initialScrollPos, hasMomentum;
 			
 			function touchStart (e) {
 				e.preventDefault();
 				$content.css('-webkit-transition-property', 'none');
-				startX = e.originalEvent.targetTouches[0].pageX;
-				startY = e.originalEvent.targetTouches[0].pageY;
-				startScroll = scrollPos();
+				initialX = e.originalEvent.targetTouches[0].pageX;
+				initialScrollPos = scrollPos();
+				console.debug('touchStart');
 			}
 			function touchMove (e) {
-				var now;
+				var 
+					x = e.originalEvent.targetTouches[0].pageX,
+					delta = initialX - x;
+				
 				e.preventDefault();
-				now = new Date().getTime();
-				if (now - throttleTimer < 10) return; 
-				throttleTimer = now;
-				var deltaX = startX - e.originalEvent.targetTouches[0].pageX;
-				scroll(startScroll + deltaX);
+				hasMomentum = Math.abs(delta) - Math.abs(latestDelta) > 5;
+				latestDelta = delta;
+				scroll(initialScrollPos + delta);
+				console.debug('touchMove');
 			}
-			function touchEnd () {
+			function touchEnd (e) {
 				$content.css('-webkit-transition-property', '');
-				scrollPage(0);
-				startX = null;
+				if (hasMomentum) {
+					scrollPage(latestDelta < 0 ? -0.5 : 0.5); // Avoid scrolling more than one whole page
+				} else {
+					scrollPage(0);
+				}
+				initialX = null;
+				console.debug('touchEnd');
 			}
+			
 			$content.bind('touchstart', touchStart);
-			$content.bind('touchmove', touchMove);
+			$content.bind('touchmove', throttle(touchMove));
 			$content.bind('touchend', touchEnd);
 		}
 		
-		function initFakeTouch () {
-			var startX, startY, startScroll, throttleTimer = 0;
-			
-			function touchStart (e) {
-				e.preventDefault();
-				$content.bind('mousemove', touchMove);
-				startX = e.pageX;
-				startY = e.pageY;
-				startScroll = scrollPos();
-			}
-			function touchMove (e) {
-				var now;
-				e.preventDefault();
-				now = new Date().getTime();
-				if (now - throttleTimer < 60) return; 
-				throttleTimer = now;
-				var deltaX = startX - e.pageX;
-				scroll(startScroll + deltaX);
-			}
-			function touchEnd () {
-				$content.unbind('mousemove', touchMove);
-				scrollPage(0);
-				startX = null;
-			}
-			
-			
-			$content.bind('mousedown', touchStart);
-			$content.bind('mouseup', touchEnd);
-		}
-
 		function init() {
 			if (isTouchScreen) {
 				initTouch();
-			} else {
-				initFakeTouch();
 			}
 			
 			$next.bind(buttonEvent, function (e) {

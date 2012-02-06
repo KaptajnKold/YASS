@@ -22,12 +22,6 @@
 		* touch
 		* csstransforms
 		* csstransitions
-	
-	TODO:
-	-----
-	
-	* Selectors for the plugins elements should be overridable.
-	
 */
 
 ;(function ($, win) {

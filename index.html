@@ -1,66 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 	<meta charset="utf-8">
 	<title>YASS.js Test Page</title>
 	<link rel="stylesheet" href="yass.css">
+	
+	<link rel="stylesheet" href="https://raw.github.com/necolas/normalize.css/master/normalize.css" type="text/css">
 	<style>
-		/* http://meyerweb.com/eric/tools/css/reset/ 
-		   v2.0 | 20110126
-		   License: none (public domain)
-		*/
-		* {
-			box-sizing: border-box;
-		}
-		html, body, div, span, applet, object, iframe,
-		h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-		a, abbr, acronym, address, big, cite, code,
-		del, dfn, em, img, ins, kbd, q, s, samp,
-		small, strike, strong, sub, sup, tt, var,
-		b, u, i, center,
-		dl, dt, dd, ol, ul, li,
-		fieldset, form, label, legend,
-		table, caption, tbody, tfoot, thead, tr, th, td,
-		article, aside, canvas, details, embed, 
-		figure, figcaption, footer, header, hgroup, 
-		menu, nav, output, ruby, section, summary,
-		time, mark, audio, video {
-			margin: 0;
-			padding: 0;
-			border: 0;
-			font-size: 100%;
-			font: inherit;
-			vertical-align: baseline;
-		}
-		/* HTML5 display-role reset for older browsers */
-		article, aside, details, figcaption, figure, 
-		footer, header, hgroup, menu, nav, section {
-			display: block;
-		}
-		body {
-			line-height: 1;
-		}
-		blockquote, q {
-			quotes: none;
-		}
-		blockquote:before, blockquote:after,
-		q:before, q:after {
-			content: '';
-			content: none;
-		}
-		table {
-			border-collapse: collapse;
-			border-spacing: 0;
-		}
-	</style>
-	<style>
-		
-		.yass-viewport { 
-			height: 402px; 
-			width: 602px;
-			border: 1px solid black; 
-			background-color: gray;
-		}
+		.naked-list		{ list-style: none; margin: 0 0; padding: 0 0; }
+
+		.hlist			{ white-space: nowrap; }
+		.hlist,
+		.hlist > li		{ display: inline-block; }
+	
+		.yass-example	{ width: 600px; margin-left: auto; margin-right: auto; }
 
 		.yass-content {
 			-webkit-transition-property: left -webkit-transform;
@@ -78,36 +32,29 @@
 			transition-property: left transform;
 			transition-duration: .5s;
 			transition-function: ease-in;
-			
-			
-			display: inline-block; white-space: nowrap;
 		}
-
-		.yass-content > li 		{ height: 400px; width: 600px; background-color: black; text-align: center; display: inline-block;}
 		
+		.yass-viewport,
+		.yass-content > li		{ height: 400px; width: 600px; }
+		.yass-content > li 		{ background-color: black; text-align: center; }
 		.yass-content > li img 	{ max-width: 600px; max-height: 400px; }
 
-		#yass-example footer {
-			text-align: center;
-			position: absolute;
-			top:180px;
-			width:600px;
-			height:40px;
-		}
 		.yass-nav-prev, 
 		.yass-nav-next {
-			height: 40px;
-			width: 60px;
+			height: 38px;
+			width: 58px;
 			display: block;
 			border: 1px solid white;
 			position:absolute;
 			top: 0;
-			line-height:40px;
+			line-height:38px;
 			text-align:center;
 			opacity: 0;
 			color:white;
 			background:black;
 			text-decoration: none;
+			top:50%;
+			margin-top: -20px;
 			-webkit-transition-property: left right opacity;
 			-webkit-transition-duration: .2s;
 			-webkit-transition-function: ease-in;
@@ -127,68 +74,53 @@
 		}
 		
 		.yass-nav-prev:active, 
-		.yass-nav-next:active {
-			color:black;
-			background-color:white;
-			border-color: black;
-		}
-		
-		.yass-nav-prev { left: -60px; }
-		.yass-nav-next { right: -60px; }
+		.yass-nav-next:active	{ color:black; background-color:white; border-color: black; }
+
+		.yass-nav-prev			{ left: -60px; float: left; }
+		.yass-nav-next			{ right: -60px; float: right; }
 		
 		.yass-viewport:hover .yass-nav-prev,
-		.yass-viewport:hover .yass-nav-next { opacity: 0.5; }
+		.yass-viewport:hover .yass-nav-next					{ opacity: 0.5; }
 
-		.yass-viewport:hover .yass-nav-prev 		{ left: 0px; }
-
-		.yass-viewport:hover .yass-nav-next 		{ right: 0px; }
+		.yass-viewport:hover .yass-nav-prev 				{ left: 0px; }
+		.yass-viewport:hover .yass-nav-next 				{ right: 0px; }
 		
 		.yass-viewport:hover .yass-nav-prev:hover,
-		.yass-viewport:hover .yass-nav-next:hover 	{ opacity: 1; }
+		.yass-viewport:hover .yass-nav-next:hover 			{ opacity: 1; }
 		
 		.yass-viewport:hover .yass-nav-prev.yass-disabled,
-		.yass-viewport:hover .yass-nav-next.yass-disabled { opacity: 0; }
+		.yass-viewport:hover .yass-nav-next.yass-disabled	{ opacity: 0; }
 
-		.yass-viewport:hover .yass-nav-prev.yass-disabled { left: -60px; }
+		.yass-viewport:hover .yass-nav-prev.yass-disabled	{ left: -60px; }
 
-		.yass-viewport:hover .yass-nav-next.yass-disabled { right: -60px; }
-
-		.slide {
-			font: 36px Helvetica, sans-serif;
-			font-weight: 700;
-			display: table-cell;
-			vertical-align: middle;
-			text-align: center;
-			height: 400px;
-			width: 600px;
-			background-color: white;
-		}
+		.yass-viewport:hover .yass-nav-next.yass-disabled	{ right: -60px; }
 		
+		.touch .yass-nav-next,
+		.touch .yass-nav-prev	{ display: none; }
 	</style>
 	
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
 </head>
 <body>
-	<section id="yass-example">
-	    <h1>Yass Example</h1>
-	    <div class="yass-viewport">
-	      <ul class="yass-content hlist"><li>
-	          <img src="http://comicrelated.com/artwork/judge_dredd.jpg">
-	        </li><li>
-	          <img src="http://1.bp.blogspot.com/-mDWU9VqVAZw/TmZAxDDjbAI/AAAAAAAAKwY/vRUWKIQEx4U/s1600/batman-and-robin-screen-2.jpg">
-	        </li><li>
-	          <img src="http://gagathemovies.com/wp-content/x_men_origins_wolverine.jpg">
-	        </li></ul>
-	      <footer>
-	        <a class="yass-nav-prev" href="#">◀</a>
-	        <a class="yass-nav-next" href="#">▶</a>
-	      </footer>
-	    </div>
-	  </section>
+	<section class="yass-example">
+		<h1>Yass Example</h1>
+		<div class="yass-viewport">
+			<ul class="yass-content hlist naked-list"><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Squash_bug_Coreidae_hz.jpg/640px-Squash_bug_Coreidae_hz.jpg">
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Trichoglossus_haematodus_-Jurong_Bird_Park%2C_Singapore_-Dec2009.jpg/1024px-Trichoglossus_haematodus_-Jurong_Bird_Park%2C_Singapore_-Dec2009.jpg">
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Eumecesfasciatus.jpg/640px-Eumecesfasciatus.jpg">
+			</li></ul>
+			<a class="yass-nav-prev" href="#">◀</a>
+			<a class="yass-nav-next" href="#">▶</a>
+		</div>
+		</section>
 	
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+	<script src="https://raw.github.com/kriskowal/es5-shim/master/es5-shim.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 	<script src="yass.js"></script>
 	<script type="text/javascript" charset="utf-8">
-		$('#yass-example').yass();
+		$('.yass-example').yass();
 	</script>
 </body>

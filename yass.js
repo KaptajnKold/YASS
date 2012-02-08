@@ -8,7 +8,7 @@
 	Copyright 2011–2012 Adam Lett
 	License: MIT http://www.opensource.org/licenses/mit-license.php
 	
-	Version: 0.2.1
+	Version: 0.3.0
 	
 	Dependencies:
 	-------------
@@ -63,7 +63,8 @@
 			currentPage: '.yass-current-page',
 			totalPages: '.yass-total-pages',
 			verticalPaging: '.vertical-paging',
-			numberedPaging: '.numbers'
+			numberedPaging: '.numbers',
+			snapTo: '.yass-snap-to'
 		},
 		
 		isTouchScreen = $html.hasClass('touch'),
@@ -178,14 +179,20 @@
 			$totalPages.text(total);
 		}
 		
+		function pos (el) {
+			return el ? $(el).position()[scrollDirection]: 0;
+		}
+		
+		function maxScrollPos () {
+			return $content[size]() - pageSize;
+		}
+		
 		function scroll (targetPos) {
-			var 
-				maxScroll = $content[size]() - pageSize,
-				pos = scrollPos();
+			var pos = scrollPos(), max = maxScrollPos();
 			if (targetPos < 0) {
 				targetPos = -Math.round(Math.pow(-targetPos, 4/5));
-			} else if ( targetPos > maxScroll) {
-				targetPos = maxScroll + Math.round(Math.pow(targetPos - maxScroll, 4/5));
+			} else if ( targetPos > max) {
+				targetPos = max + Math.round(Math.pow(targetPos - max, 4/5));
 			}
 			//targetPos = pos < targetPos ? Math.min( targetPos, $content[size]() - pageSize ) : targetPos;
 			if ( pos === targetPos ) { return; }
@@ -194,7 +201,10 @@
 		}
 
 		function scrollTo (targetElem) {
-			scroll($(targetElem).position()[scrollDirection]);
+			scroll( Math.min( Math.max(0, pos(targetElem)), maxScrollPos() ) );
+			if (targetElem && typeof options.onScrollTo === 'function') {
+				options.onScrollTo(targetElem)
+			}
 		}
 
 		function scrollBy (delta) {
@@ -224,18 +234,44 @@
 		}
 
 		function scrollPage (n) {
+			scroll(relativePagePos(n));
+		}
+		
+		function relativePagePos (n) {
 			var 
 				page = currentPage() + n,
 				maxPageIndex = pageCount() - 1;
 			if (page < 0) {
-				scroll(0);
-			} else if (page > maxPageIndex) {
-				scroll(maxPageIndex*pageSize);
-			} else {
-				scroll(Math.round(page)*pageSize);
+				return 0;
 			}
+			if (page > maxPageIndex) {
+				return maxPageIndex*pageSize;
+			}
+			return Math.round(page)*pageSize;
+		}
+		
+		function prevSnapEl () {
+			var currentScrollPos = scrollPos();
+			return $(selectors.snapTo).filter(function () { return currentScrollPos > pos(this); }).last()[0];
 		}
 
+		function nextSnapEl () {
+			var currentScrollPos = scrollPos();
+			return $(selectors.snapTo).filter(function () { 
+				return currentScrollPos < pos(this); 
+			})[0] || $(selectors.snapTo).last()[0];
+		}
+		
+		function nearestSnapEl () {
+			var currentScrollPos = scrollPos();
+			return $(selectors.snapTo).toArray().reduce(function (nearestSoFar, current) { 
+				var 
+					nearestSoFarDist = Math.abs(currentScrollPos - pos(nearestSoFar)),
+					currentDist = Math.abs(currentScrollPos - pos(current));
+				return nearestSoFarDist < currentDist ? nearestSoFar : current;
+			});
+		}
+		
 		function next () {
 			scrollPage(1);
 		}
@@ -252,7 +288,7 @@
 				pagingHTML = "";
 			if (1 < wholePages) {
 				wholePages.times(function (i) {
-					pagingHTML += pageLinkHTML.supplant({ 'page': i + 1 });
+					pagingHTML += pageLinkHTML.supplant({ 'page': i + 1 }); // FIXME: supplant is not a function on the prototype of String
 				});
 				$pagingLinks.html(pagingHTML);
 				$nav.show();
@@ -287,10 +323,9 @@
 			
 			function touchStart (e) {
 				e.preventDefault();
-				$content.css('-webkit-transition-property', 'none');
+				$content.css('-webkit-transition-property', 'none');  // FIXME: Should not be webkit dependant
 				initialX = e.originalEvent.targetTouches[0].pageX;
 				initialScrollPos = scrollPos();
-				console.debug('touchStart');
 			}
 			function touchMove (e) {
 				var 
@@ -301,19 +336,32 @@
 				hasMomentum = Math.abs(delta) - Math.abs(latestDelta) > 5;
 				latestDelta = delta;
 				scroll(initialScrollPos + delta);
-				console.debug('touchMove');
 			}
 			function touchEnd (e) {
-				$content.css('-webkit-transition-property', '');
+				var scrollAmount, targetEl, snap = $(selectors.snapTo).length > 0;
+				$content.css('-webkit-transition-property', ''); // FIXME: Should not be webkit dependant
 				if (hasMomentum) {
-					scrollPage(latestDelta < 0 ? -0.5 : 0.5); // Avoid scrolling more than one whole page
+					if (snap){
+						targetEl = latestDelta < 0 ? prevSnapEl() : nextSnapEl();
+					} else {
+						scrollAmount = relativePagePos(latestDelta < 0 ? -0.5 : 0.5); // Avoid scrolling more than one whole page
+					}
 				} else {
-					scrollPage(0);
+					if (snap) {
+						targetEl = nearestSnapEl();
+						
+					} else {
+						scrollAmount = relativePagePos(0);
+					}
+				}
+				if (snap) {
+					scrollTo(targetEl);
+				} else {
+					scroll(Math.min(Math.max(0, scrollAmount), $content[size]() - pageSize));
 				}
 				initialX = null;
-				console.debug('touchEnd');
 			}
-			
+						
 			$content.bind('touchstart', touchStart);
 			$content.bind('touchmove', throttle(touchMove));
 			$content.bind('touchend', touchEnd);
@@ -360,7 +408,7 @@
 	}
 	
 	$.fn.yass = function (method) {
-		var firstArgument = arguments[0];
+		var firstArgument = arguments[0]; // Can either be a method name or an options object
 
 		this.each(function () {
 			var plugin = !$(this).data('yass');

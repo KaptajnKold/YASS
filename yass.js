@@ -67,6 +67,10 @@
 			snapTo: '.yass-snap-to'
 		},
 		
+		defaultOptions = {
+			touch: true
+		},
+		
 		isTouchScreen = $html.hasClass('touch'),
 		buttonEvent = isTouchScreen ? 'touchstart' : 'click';
 	
@@ -109,18 +113,12 @@
 	cssTransitionProperty = vendorPrefix + 'Transform',
 	transitionEndEvent = transitionEndEvents[vendorPrefix] || transitionEndEvents[''];
 	
-	function Yass (el, options) {
-		
-		/*
-			options:
-			
-			* selectors
-		*/
-		options || (options = {});
+	function Yass (el, userOptions) {
 		
 		var 
 			//elements
 			$el = $(el),
+			options = $.extend({}, defaultOptions, $.fn.yass.options, (userOptions || {})),
 			selectors = $.extend({}, defaultSelectors, $.fn.yass.selectors, (options.selectors || {})),
 			$viewport = $(selectors.viewport, $el),
 			$content = $(selectors.content, $el),
@@ -368,7 +366,7 @@
 		}
 		
 		function init() {
-			if (isTouchScreen) {
+			if (isTouchScreen && options.touch) {
 				initTouch();
 			}
 			
@@ -408,14 +406,14 @@
 	}
 	
 	$.fn.yass = function (method) {
-		var firstArgument = arguments[0]; // Can either be a method name or an options object
+		var args = [].slice.apply(arguments);
 
 		this.each(function () {
-			var plugin = !$(this).data('yass');
-			if (plugin && typeof firstArgument === 'string' && typeof plugin[firstArgument] === "function") {
-				plugin[firstArgument].apply(plugin, [].slice.call(arguments, 1));
+			var plugin = $(this).data('yass');
+			if (plugin && typeof args[0] === 'string' && typeof plugin[args[0]] === "function") {
+				plugin[args[0]].apply(plugin, args.slice(1));
 			} else {
-				plugin = new Yass(this, firstArgument);
+				plugin = new Yass(this, args[0]);
 				$(this).data('yass', plugin);
 			}
 		});
@@ -424,4 +422,5 @@
 	};
 	
 	$.fn.yass.selectors = {};
+	$.fn.yass.options = {};
 } (jQuery, window));

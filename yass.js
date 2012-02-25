@@ -68,7 +68,8 @@
 		},
 		
 		defaultOptions = {
-			touch: true
+			touch: true,
+			debug: false
 		},
 		
 		isTouchScreen = $html.hasClass('touch'),
@@ -114,6 +115,8 @@
 	transitionEndEvent = transitionEndEvents[vendorPrefix] || transitionEndEvents[''];
 	
 	function Yass (el, userOptions) {
+		
+		if (userOptions && !typeof userOptions === 'object') { throw new TypeError('Yass options must be an object'); }
 		
 		var 
 			//elements
@@ -178,7 +181,8 @@
 		}
 		
 		function pos (el) {
-			return el ? $(el).position()[scrollDirection]: 0;
+			// It's tempting to just return el.offset(Left|Top), but that only works if el is a child of $content
+			return el ? $(el).offset()[scrollDirection] - $content.offset()[scrollDirection] : 0;
 		}
 		
 		function maxScrollPos () {
@@ -192,7 +196,6 @@
 			} else if ( targetPos > max) {
 				targetPos = max + Math.round(Math.pow(targetPos - max, 4/5));
 			}
-			//targetPos = pos < targetPos ? Math.min( targetPos, $content[size]() - pageSize ) : targetPos;
 			if ( pos === targetPos ) { return; }
 			setScrollPos(targetPos);
 			$el.trigger('scroll');
@@ -320,7 +323,6 @@
 			var initialX, latestDelta, initialScrollPos, hasMomentum;
 			
 			function touchStart (e) {
-				e.preventDefault();
 				$content.css('-webkit-transition-property', 'none');  // FIXME: Should not be webkit dependant
 				initialX = e.originalEvent.targetTouches[0].pageX;
 				initialScrollPos = scrollPos();
@@ -365,9 +367,67 @@
 			$content.bind('touchend', touchEnd);
 		}
 		
+		function initFakeTouch () {
+			// TODO: Support vertical scrolling
+			var initialX, latestDelta, initialScrollPos, hasMomentum, touchMoveThrottled;
+			
+			function touchStart (e) {
+				e.preventDefault();
+				$content.css(cssTransitionProperty, 'none');  // FIXME: Should not be webkit dependant
+				initialX = e.pageX;
+				initialScrollPos = scrollPos();
+				
+				$content.bind('mousemove', touchMoveThrottled);
+				
+			}
+			function touchMove (e) {
+				var 
+					x = e.pageX,
+					delta = initialX - x;
+				
+				e.preventDefault();
+				hasMomentum = Math.abs(delta) - Math.abs(latestDelta) > 5;
+				latestDelta = delta;
+				scroll(initialScrollPos + delta);
+			}
+			function touchEnd (e) {
+				var scrollAmount, targetEl, snap = $(selectors.snapTo).length > 0;
+				$content.css(cssTransitionProperty, '');
+				if (hasMomentum) {
+					if (snap){
+						targetEl = latestDelta < 0 ? prevSnapEl() : nextSnapEl();
+					} else {
+						scrollAmount = relativePagePos(latestDelta < 0 ? -0.5 : 0.5); // Avoid scrolling more than one whole page
+					}
+				} else {
+					if (snap) {
+						targetEl = nearestSnapEl();
+						
+					} else {
+						scrollAmount = relativePagePos(0);
+					}
+				}
+				if (snap) {
+					scrollTo(targetEl);
+				} else {
+					scroll(Math.min(Math.max(0, scrollAmount), $content[size]() - pageSize));
+				}
+				
+				$content.unbind('mousemove', touchMoveThrottled);
+				initialX = null;
+			}
+			
+			touchMoveThrottled = throttle(touchMove);
+			$content.bind('mousedown', touchStart);
+			$content.bind('mouseup', touchEnd);
+		}
+		
+		
 		function init() {
 			if (isTouchScreen && options.touch) {
 				initTouch();
+			} else if (options.debug && options.touch) {
+				initFakeTouch();
 			}
 			
 			$next.bind(buttonEvent, function (e) {
@@ -385,7 +445,12 @@
 			});
 			
 			if (cssTransitionsSupported) {
-				$content.bind(transitionEndEvent, updatePaging);
+				$content.bind(transitionEndEvent, function () {
+					updatePaging();
+					if (typeof options.onTransitionEnd === 'function') {
+						options.onTransitionEnd();
+					}
+				});
 			} else {
 				$el.bind('scroll', updatePaging);
 			}

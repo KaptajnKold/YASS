@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta charset="utf-8">
+	<title>Yass Example: Multiple Sliders</title>
+	<link rel="stylesheet" href="../yass.css">
+	<link rel="stylesheet" href="https://raw.github.com/necolas/normalize.css/master/normalize.css" type="text/css">
+	<style>
+		.naked-list		{ list-style: none; margin: 0 0; padding: 0 0; }
+		
+		.hlist			{ white-space: nowrap; }
+		.hlist,
+		.hlist > li		{ display: inline-block; }
+	
+		.yass-example	{ margin-left: auto; margin-right: auto; }
+		
+		.yass-example	{ width: 600px; }
+
+		.yass-content {
+			-webkit-transition-property: left -webkit-transform;
+			-webkit-transition-duration: .5s;
+			-webkit-transition-function: ease-in;
+			-moz-transition-property: left -moz-transform;
+			-moz-transition-duration: .5s;
+			-moz-transition-function: ease-in;
+			-o-transition-property: left -o-transform;
+			-o-transition-duration: .5s;
+			-o-transition-function: ease-in;
+			-ms-transition-property: left -ms-transform;
+			-ms-transition-duration: .5s;
+			-ms-transition-function: ease-in;
+			transition-property: left transform;
+			transition-duration: .5s;
+			transition-function: ease-in;
+		}
+		
+		.yass-viewport,
+		.yass-content > li		{ height: 400px; width: 600px; }
+		.yass-content > li 		{ background-color: black; text-align: center; }
+		.yass-content > li img 	{ max-width: 600px; max-height: 400px; }
+		
+		head 					{ display: block; }
+		#pagination-styling		{ display: none; background: silver; border: 1px solid gray; white-space: pre; font-family: monospace; overflow: scroll; tab-size: 4; padding: 12px; margin: 12px;}
+		#pagination-styling:target { display:block; }
+	</style>
+	<style id="pagination-styling" contenteditable="true" autofocus>
+		.yass-paging-links { 
+			text-align: center; 
+		}
+		.yass-paging-links > li { 
+			display: inline-block; 
+			border-radius: 100%; width: 11px; height: 11px; 
+			box-shadow: inset 0 1px 4px rgba(0,0,0,0.5); 
+			margin: 12px 6px; 
+			border: 1px solid gray; 
+			background-color: #DDD; 
+			cursor: pointer;
+		}
+		.yass-paging-links > li:hover { 
+			background-color: #BBB; 
+		}
+		.yass-paging-links > li:active { 
+			background-color: #999; 
+		}
+		.yass-paging-links > li.current	{ 
+			background-color: green; 
+			box-shadow: inset 0 1px 3px rgba(255,255,255,0.5), inset 0 -1px 3px rgba(0,0,0,0.5); }
+		
+	</style>
+	
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+	<section class="yass-example">
+		<div class="yass-viewport">
+			<ul class="yass-content hlist naked-list"><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Crab_Nebula.jpg/600px-Crab_Nebula.jpg" />
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/8/81/NGC602.jpg/614px-NGC602.jpg" />
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/NGC7293_%282004%29.jpg/600px-NGC7293_%282004%29.jpg" />
+			</li><li>
+				<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Antennae_galaxies_xl.jpg/604px-Antennae_galaxies_xl.jpg" />
+			</li></ul>
+		</div>
+		<ol class="yass-paging-links naked-list"></ol>
+	</section>
+	<h1>Pagination</h1>
+	<p>… or: The little dots beneath the slide show that indicate what page of the slide show you are currently seeing.</p>
+	<p>
+		If you add a list (ordered or unordered) with the class <code>yass-paging-links</code> to the container,
+		YASS will add as many list items as there are pages in the slide show. The list item corresponding to the current
+		page will have the class <code>current</code>.
+	</p>
+	<p>
+		<a href="#pagination-styling">Click here to reveal the css</a> used for styling the pagination in this particular example. The styles are editable and update live, so you can play around.
+	</p>
+	  
+	
+	<script src="https://raw.github.com/kriskowal/es5-shim/master/es5-shim.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="../yass.js"></script>
+	<script type="text/javascript" charset="utf-8">
+		$('.yass-example').yass();
+	</script>
+</body>

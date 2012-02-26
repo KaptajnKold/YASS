@@ -1,5 +1,5 @@
 /*jslint white:false*/
-/*global jQuery, window*/
+/*global jQuery, window, document*/
 
 /*
 	YASS.js -- Yet Another Slideshow
@@ -24,7 +24,7 @@
 		* csstransitions
 */
 
-;(function ($, win) {
+;(function ($, win, doc) {
 	
 	'use strict';
 	
@@ -38,7 +38,7 @@
 		cssTransformsSupported = $html.hasClass('csstransforms'),
 		cssTransitionsSupported = $html.hasClass('csstransitions'),
 		
-		transitionEndEvents = {
+		prefixedTransitionEndEvents = {
 			Webkit: 'webkitTransitionEnd',
 			Moz: 'transitionend',
 			O: 'oTransitionEnd',
@@ -48,27 +48,30 @@
 		
 		transitionEndEvent,
 		
+		// Classes that YASS will apply to elements
+		// TODO: Make configurable 
 		cssClasses = {
-			disabled: 'yass-disabled',
+			disabled: 'yass-disabled'
 		},
 		
+		// TODO: Make prefix configurable
 		defaultSelectors = {
 			content: '.yass-content',
 			noContent: '.yass-no-content',
 			viewport: '.yass-viewport',
 			next: '.yass-nav-next',
 			prev: '.yass-nav-prev',
-			nav: 'nav',
-			paging: 'ul,ol',
+			paging: 'ul.yass-paging-links, ol.yass-paging-links',
 			currentPage: '.yass-current-page',
 			totalPages: '.yass-total-pages',
-			verticalPaging: '.vertical-paging',
-			numberedPaging: '.numbers',
+			verticalPaging: '.yass-vertical-paging',
+			numberedPaging: '.yass-numbers',
 			snapTo: '.yass-snap-to'
 		},
 		
 		defaultOptions = {
 			touch: true,
+			// Toggles fake touch on non-touch enabled devices using mouse events
 			debug: false
 		},
 		
@@ -79,7 +82,7 @@
 	function getVendorPrefix () {
 		var 
 			prefixPattern = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/,
-			someScript = document.getElementsByTagName('script')[0],
+			someScript = doc.getElementsByTagName('script')[0],
 			prop;
 
 		for(prop in someScript.style) {
@@ -106,17 +109,27 @@
 			if (now - lastInvocation > threshold) {
 				return fn.apply(context, arguments);
 			}
-		}
+		};
 	}
 	
-	vendorPrefix = getVendorPrefix(),
-	cssTransformProperty = vendorPrefix + 'Transform',
-	cssTransitionProperty = vendorPrefix + 'Transform',
-	transitionEndEvent = transitionEndEvents[vendorPrefix] || transitionEndEvents[''];
+	// From: http://javascript.crockford.com/remedial.html
+	function supplant (o) {
+	    return this.replace(/{([^{}]*)}/g,
+	        function (a, b) {
+	            var r = o[b];
+	            return typeof r === 'string' || typeof r === 'number' ? r : a;
+	        }
+	    );
+	}
+	
+	vendorPrefix = getVendorPrefix();
+	cssTransformProperty = vendorPrefix + 'Transform';
+	cssTransitionProperty = vendorPrefix + 'Transform';
+	transitionEndEvent = prefixedTransitionEndEvents[vendorPrefix] || prefixedTransitionEndEvents[''];
 	
 	function Yass (el, userOptions) {
 		
-		if (userOptions && !typeof userOptions === 'object') { throw new TypeError('Yass options must be an object'); }
+		if (userOptions && typeof userOptions !== 'object') { throw new TypeError('Yass options must be an object'); }
 		
 		var 
 			//elements
@@ -126,14 +139,13 @@
 			$viewport = $(selectors.viewport, $el),
 			$content = $(selectors.content, $el),
 			$noContent = $(selectors.noContent, $el),
-			$nav = $(selectors.nav, $el),
-			$pagingLinks = $(selectors.paging, $nav),
+			$pagingLinks = $(selectors.paging, $el),
 			$prev = $(selectors.prev, $el),
 			$next = $(selectors.next, $el),
 			$currentPage = $(selectors.currentPage),
 			$totalPages = $(selectors.totalPages),
 
-			pageLinkHTML = $nav.is(selectors.numberedPaging) ? '<li class="link-to-page">{page}</li>' : '<li class="dot" title="{page}">&nbsp;</li>',
+			paginationTemplate = supplant.bind( $pagingLinks.is(selectors.numberedPaging) ? '<li>{page}</li>' : '<li>&nbsp;</li>' ),
 			
 			verticalPaging = $el.is(selectors.verticalPaging),
 			scrollDirection = verticalPaging ? 'top' : 'left',
@@ -170,8 +182,8 @@
 			var 
 				current = Math.ceil(currentPage()) + 1,
 				total = Math.ceil(pageCount());
-			$('li.current', $nav).removeClass('current');
-			$('li:nth-child(' + current + ')', $nav).addClass('current');
+			$('li.current', $pagingLinks).removeClass('current');
+			$('li:nth-child(' + current + ')', $pagingLinks).addClass('current');
 			
 			$prev.toggleClass(cssClasses.disabled, current === 1);
 			$next.toggleClass(cssClasses.disabled, current === total);
@@ -204,7 +216,7 @@
 		function scrollTo (targetElem) {
 			scroll( Math.min( Math.max(0, pos(targetElem)), maxScrollPos() ) );
 			if (targetElem && typeof options.onScrollTo === 'function') {
-				options.onScrollTo(targetElem)
+				options.onScrollTo(targetElem);
 			}
 		}
 
@@ -233,10 +245,6 @@
 				scrollBy(delta);
 			}
 		}
-
-		function scrollPage (n) {
-			scroll(relativePagePos(n));
-		}
 		
 		function relativePagePos (n) {
 			var 
@@ -251,6 +259,10 @@
 			return Math.round(page)*pageSize;
 		}
 		
+		function scrollPage (n) {
+			scroll(relativePagePos(n));
+		}
+
 		function prevSnapEl () {
 			var currentScrollPos = scrollPos();
 			return $(selectors.snapTo).filter(function () { return currentScrollPos > pos(this); }).last()[0];
@@ -282,20 +294,21 @@
 		}
 
 		function renderNav () {
-			updatePaging();
 			if ($pagingLinks.length === 0) { return; }
 			var 
 				wholePages = Math.ceil(pageCount()),
-				pagingHTML = "";
+				pagingHTML = "",
+				i;
 			if (1 < wholePages) {
-				wholePages.times(function (i) {
-					pagingHTML += pageLinkHTML.supplant({ 'page': i + 1 }); // FIXME: supplant is not a function on the prototype of String
-				});
+				for (i = 0; i < wholePages; i++) {
+					pagingHTML += paginationTemplate({ 'page': i + 1 });
+				}
 				$pagingLinks.html(pagingHTML);
-				$nav.show();
+				$pagingLinks.show();
 			} else {
-				$nav.hide();
+				$pagingLinks.hide();
 			}
+			updatePaging();
 		}
 
 		function toggleContentNoContent () {
@@ -440,7 +453,7 @@
 				prev();
 			});
 			
-			$nav.delegate('li', buttonEvent, function (e) {
+			$pagingLinks.delegate('li', buttonEvent, function (e) {
 				scroll($(this).index() * pageSize);
 			});
 			
@@ -488,4 +501,4 @@
 	
 	$.fn.yass.selectors = {};
 	$.fn.yass.options = {};
-} (jQuery, window));
+} (jQuery, window, document));

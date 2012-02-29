@@ -1,4 +1,4 @@
-/*jslint white:false*/
+/*jslint white:false, plusplus: false, regexp:true */
 /*global jQuery, window, document*/
 
 /*
@@ -171,11 +171,11 @@
 			};
 					
 		function pageCount () {
-			return $content[size]() / pageSize;
+			return $content[size]()/pageSize;
 		}
 
 		function currentPage () {
-			return scrollPos() / pageSize;
+			return scrollPos()/pageSize;
 		}
 
 		function updatePaging () {
@@ -331,12 +331,20 @@
 			refresh();
 		}
 		
+		function enableTransition () {
+			$content.css(cssTransitionProperty, '');
+		}
+		
+		function disableTransition () {
+			$content.css(cssTransitionProperty, 'none');
+		}
+
 		function initTouch () {
 			// TODO: Support vertical scrolling
 			var initialX, latestDelta, initialScrollPos, hasMomentum;
 			
 			function touchStart (e) {
-				$content.css('-webkit-transition-property', 'none');  // FIXME: Should not be webkit dependant
+				disableTransition();
 				initialX = e.originalEvent.targetTouches[0].pageX;
 				initialScrollPos = scrollPos();
 			}
@@ -352,7 +360,7 @@
 			}
 			function touchEnd (e) {
 				var scrollAmount, targetEl, snap = $(selectors.snapTo).length > 0;
-				$content.css('-webkit-transition-property', ''); // FIXME: Should not be webkit dependant
+				enableTransition();
 				if (hasMomentum) {
 					if (snap){
 						targetEl = latestDelta < 0 ? prevSnapEl() : nextSnapEl();
@@ -386,7 +394,7 @@
 			
 			function touchStart (e) {
 				e.preventDefault();
-				$content.css(cssTransitionProperty, 'none');  // FIXME: Should not be webkit dependant
+				disableTransition();
 				initialX = e.pageX;
 				initialScrollPos = scrollPos();
 				
@@ -405,7 +413,7 @@
 			}
 			function touchEnd (e) {
 				var scrollAmount, targetEl, snap = $(selectors.snapTo).length > 0;
-				$content.css(cssTransitionProperty, '');
+				enableTransition();
 				if (hasMomentum) {
 					if (snap){
 						targetEl = latestDelta < 0 ? prevSnapEl() : nextSnapEl();

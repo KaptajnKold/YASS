@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Yass Example: Snap to element</title>
+	<link rel="stylesheet" href="../yass.css">
+	<link rel="stylesheet" href="https://raw.github.com/necolas/normalize.css/master/normalize.css" type="text/css">
+	<style>
+		.naked-list		{ list-style: none; margin: 0 0; padding: 0 0; }
+
+		.hlist			{ white-space: nowrap; }
+		.hlist,
+		.hlist > li		{ display: inline-block; }
+	
+		.yass-content {
+			-webkit-transition-property: left -webkit-transform;
+			-webkit-transition-duration: .5s;
+			-webkit-transition-function: ease-in;
+			-moz-transition-property: left -moz-transform;
+			-moz-transition-duration: .5s;
+			-moz-transition-function: ease-in;
+			-o-transition-property: left -o-transform;
+			-o-transition-duration: .5s;
+			-o-transition-function: ease-in;
+			-ms-transition-property: left -ms-transform;
+			-ms-transition-duration: .5s;
+			-ms-transition-function: ease-in;
+			transition-property: left transform;
+			transition-duration: .5s;
+			transition-function: ease-in;
+		}
+		
+		.yass-viewport			{ height: 200px; width: 908px; }
+		.yass-content > li		{ height: 200px; width: 300px; }
+		.yass-content > li 		{ background-color: black; text-align: center; }
+		.yass-content > li img 	{ max-width: 300px; max-height: 200px; }
+
+		.yass-nav-prev, 
+		.yass-nav-next {
+			height: 38px;
+			width: 58px;
+			display: block;
+			border: 1px solid white;
+			position:absolute;
+			top: 0;
+			line-height:38px;
+			text-align:center;
+			opacity: 0;
+			color:white;
+			background:black;
+			text-decoration: none;
+			top:50%;
+			margin-top: -20px;
+			-webkit-transition-property: left right opacity;
+			-webkit-transition-duration: .2s;
+			-webkit-transition-function: ease-in;
+			-moz-transition-property: left right opacity;
+			-moz-transition-duration: .2s;
+			-moz-transition-function: ease-in;
+			-o-transition-property: left right opacity;
+			-o-transition-duration: .2s;
+			-o-transition-function: ease-in;
+			-ms-transition-property: left right opacity;
+			-ms-transition-duration: .2s;
+			-ms-transition-function: ease-in;
+			transition-property: left right opacity;
+			transition-duration: .2s;
+			transition-function: ease-in;
+			
+		}
+		
+		.yass-nav-prev:active, 
+		.yass-nav-next:active	{ color:black; background-color:white; border-color: black; }
+
+		.yass-nav-prev			{ left: -60px; float: left; }
+		.yass-nav-next			{ right: -60px; float: right; }
+		
+		.yass-viewport:hover .yass-nav-prev,
+		.yass-viewport:hover .yass-nav-next					{ opacity: 0.5; }
+
+		.yass-viewport:hover .yass-nav-prev 				{ left: 0px; }
+		.yass-viewport:hover .yass-nav-next 				{ right: 0px; }
+		
+		.yass-viewport:hover .yass-nav-prev:hover,
+		.yass-viewport:hover .yass-nav-next:hover 			{ opacity: 1; }
+		
+		.yass-viewport:hover .yass-nav-prev.yass-disabled,
+		.yass-viewport:hover .yass-nav-next.yass-disabled	{ opacity: 0; }
+
+		.yass-viewport:hover .yass-nav-prev.yass-disabled	{ left: -60px; }
+
+		.yass-viewport:hover .yass-nav-next.yass-disabled	{ right: -60px; }
+		
+		.touch .yass-nav-next,
+		.touch .yass-nav-prev	{ display: none; }
+	</style>
+	
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+	<h1>How to use?</h1>
+	<p>
+		You can either use YASS's default snapTo selector, which is <code>yass-snap-to</code>, or you can override it 
+		either globally or locally.
+	</p>
+	
+	<h2>Using YASS's default snapTo selector</h2>
+	<pre class="code-example">
+&lt;div id="slideshow"&gt;
+	&lt;div class="yass-viewport"&gt;
+		&lt;ul class="yass-content"&gt;
+			&lt;li class="yass-snap-to"&gt;Slide 1&lt;/li&gt;
+			&lt;li class="yass-snap-to"&gt;Slide 2&lt;/li&gt;
+			&lt;li class="yass-snap-to"&gt;Slide 3&lt;/li&gt;
+		&lt;/ul&gt;
+	&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+	$('#slideshow').yass();
+&lt;/script&gt;
+	</pre>
+	
+	<h2>Overriding YASS's default snapTo selector globally</h2>
+	<pre class="code-example">
+&lt;div id="slideshow"&gt;
+	&lt;div class="yass-viewport"&gt;
+		&lt;ul class="yass-content"&gt;
+			&lt;li&gt;Slide 1&lt;/li&gt;
+			&lt;li&gt;Slide 2&lt;/li&gt;
+			&lt;li&gt;Slide 3&lt;/li&gt;
+		&lt;/ul&gt;
+	&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+	// Every slide show instantiated after this line, will use this selector
+	$.fn.yass.selectors = { snapTo: 'ul.yass-content > li'};
+	
+	$('#slideshow').yass();
+&lt;/script&gt;
+	</pre>
+	
+	<h2>Overriding YASS's default snapTo selector locally</h2>
+	<pre class="code-example">
+&lt;div id="slideshow"&gt;
+	&lt;div class="yass-viewport"&gt;
+		&lt;ul class="yass-content"&gt;
+			&lt;li&gt;Slide 1&lt;/li&gt;
+			&lt;li&gt;Slide 2&lt;/li&gt;
+			&lt;li&gt;Slide 3&lt;/li&gt;
+		&lt;/ul&gt;
+	&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+	// YASS will only use the specified snapTo selector for slide shows instantiated with this line
+	$('#slideshow').yass({ selectors: { snapTo: 'li' }});
+&lt;/script&gt;
+	</pre>
+	
+	<h1>Understanding snapTo: What happens when no element matches the snapTo selector?</h1>
+	<p>
+		In this case, YASS will assume a page to be the width of the viewport. Invoking <code>prev</code> and
+		 <code>next</code> will scroll the content back or forward by exactly the width of the viewport. Why is
+		this important to understand? Say your content is a list made to display horizontally by applying
+		the style <code>display:inline-block;</code> to both the list and the list items (applying it to the list
+		makes its width grow with the content). It's something I personally do all the time. But if you don't make sure
+		to eliminate the white space in the markup between each list item, the browser will render a space between each
+		list item, which means that the width of the entire list is going to be the width of all the list items <em>plus
+		the width of all the spaces between them</em>, which means that when YASS scrolls the content by a page width, the
+		list items will not align exactly with the viewport.
+	</p>
+	<p>
+		To solve this problem there are two ways to go: Either you can eliminate the space between the list items by making sure
+		there is no white space between them in the markup (which is what I have done in several of the examples), 
+		or you can make sure the list items match YASS´s snapTo selector, which will make <code>prev</code> and
+		<code>next</code> disregard the size of the viewport and instead scroll the next element such that its left edge aligns 
+		exactly with the left edge of the viewport.
+	</p>
+	
+	<h1>Using snapTo for fun and profit!</h1>
+	<div id="three-element-viewport">
+		<div class="yass-viewport">
+			<ul class="yass-content hlist naked-list">
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Crab_Nebula.jpg/600px-Crab_Nebula.jpg" />
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/8/81/NGC602.jpg/614px-NGC602.jpg" />
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/NGC7293_%282004%29.jpg/600px-NGC7293_%282004%29.jpg" />
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Antennae_galaxies_xl.jpg/604px-Antennae_galaxies_xl.jpg" />
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Squash_bug_Coreidae_hz.jpg/640px-Squash_bug_Coreidae_hz.jpg">
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Trichoglossus_haematodus_-Jurong_Bird_Park%2C_Singapore_-Dec2009.jpg/1024px-Trichoglossus_haematodus_-Jurong_Bird_Park%2C_Singapore_-Dec2009.jpg">
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Eumecesfasciatus.jpg/640px-Eumecesfasciatus.jpg">
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Crab_Nebula.jpg/600px-Crab_Nebula.jpg" />
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/8/81/NGC602.jpg/614px-NGC602.jpg" />
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/NGC7293_%282004%29.jpg/600px-NGC7293_%282004%29.jpg" />
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Antennae_galaxies_xl.jpg/604px-Antennae_galaxies_xl.jpg" />
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Squash_bug_Coreidae_hz.jpg/640px-Squash_bug_Coreidae_hz.jpg">
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Trichoglossus_haematodus_-Jurong_Bird_Park%2C_Singapore_-Dec2009.jpg/1024px-Trichoglossus_haematodus_-Jurong_Bird_Park%2C_Singapore_-Dec2009.jpg">
+				</li>
+				<li>
+					<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Eumecesfasciatus.jpg/640px-Eumecesfasciatus.jpg">
+				</li>
+				
+			</ul>
+			<a class="yass-nav-prev" href="#">◀</a>
+			<a class="yass-nav-next" href="#">▶</a>
+		</div>
+	</div>
+	<p>
+		In the above example, the snapTo selector is <code>li:nth-child(3n + 1)</code>, ie. every third element starting with
+		the first. This makes it possible to scroll the entire viewport if the viewport has room for exactly 3 elements.
+	</p>
+	  
+	
+	<script src="https://raw.github.com/kriskowal/es5-shim/master/es5-shim.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="../yass.js"></script>
+	<script type="text/javascript" charset="utf-8">
+	var snapSelector = 'li:nth-child(3n + 1)';
+		$('#three-element-viewport').yass({ selectors: { snapTo: snapSelector } });
+		$(snapSelector).css('box-shadow', 'inset 0 0 3px 3px red');
+	</script>
+</body>

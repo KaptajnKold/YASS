@@ -124,7 +124,7 @@
 	
 	vendorPrefix = getVendorPrefix();
 	cssTransformProperty = vendorPrefix + 'Transform';
-	cssTransitionProperty = vendorPrefix + 'Transform';
+	cssTransitionProperty = vendorPrefix + 'Transition';
 	transitionEndEvent = prefixedTransitionEndEvents[vendorPrefix] || prefixedTransitionEndEvents[''];
 	
 	function Yass (el, userOptions) {
@@ -285,14 +285,34 @@
 			});
 		}
 		
-		function next () {
-			scrollPage(1);
-		}
-
 		function prev () {
-			scrollPage(-1);
+			var hasSnap = $(selectors.snapTo).length > 0;
+			if (hasSnap) {
+				scrollTo(prevSnapEl());
+			} else {
+				scrollPage(-0.5);
+			}
 		}
-
+		
+		function next () {
+			var hasSnap = $(selectors.snapTo).length > 0;
+			if (hasSnap) {
+				scrollTo(nextSnapEl());
+			} else {
+				scrollPage(0.5);
+			}
+		}
+		
+		function scrollToNearestPage () {
+			var hasSnap = $(selectors.snapTo).length > 0;
+			if (hasSnap) {
+				scrollTo(nearestSnapEl());
+			} else {
+				scrollPage(0);
+			}
+			
+		}
+				
 		function renderNav () {
 			if ($pagingLinks.length === 0) { return; }
 			var 
@@ -348,6 +368,7 @@
 				initialX = e.originalEvent.targetTouches[0].pageX;
 				initialScrollPos = scrollPos();
 			}
+
 			function touchMove (e) {
 				var 
 					x = e.originalEvent.targetTouches[0].pageX,
@@ -358,29 +379,20 @@
 				latestDelta = delta;
 				scroll(initialScrollPos + delta);
 			}
+
 			function touchEnd (e) {
-				var scrollAmount, targetEl, snap = $(selectors.snapTo).length > 0;
 				enableTransition();
-				if (hasMomentum) {
-					if (snap){
-						targetEl = latestDelta < 0 ? prevSnapEl() : nextSnapEl();
-					} else {
-						scrollAmount = relativePagePos(latestDelta < 0 ? -0.5 : 0.5); // Avoid scrolling more than one whole page
-					}
-				} else {
-					if (snap) {
-						targetEl = nearestSnapEl();
-						
-					} else {
-						scrollAmount = relativePagePos(0);
-					}
-				}
-				if (snap) {
-					scrollTo(targetEl);
-				} else {
-					scroll(Math.min(Math.max(0, scrollAmount), $content[size]() - pageSize));
-				}
 				initialX = null;
+
+				if (hasMomentum) {
+					if (latestDelta < 0) {
+						prev();
+					} else {
+						next();
+					}
+				} else {
+					scrollToNearestPage();
+				}
 			}
 						
 			$content.bind('touchstart', touchStart);
@@ -401,6 +413,7 @@
 				$content.bind('mousemove', touchMoveThrottled);
 				
 			}
+			
 			function touchMove (e) {
 				var 
 					x = e.pageX,
@@ -411,31 +424,22 @@
 				latestDelta = delta;
 				scroll(initialScrollPos + delta);
 			}
+			
 			function touchEnd (e) {
-				var scrollAmount, targetEl, snap = $(selectors.snapTo).length > 0;
 				enableTransition();
-				if (hasMomentum) {
-					if (snap){
-						targetEl = latestDelta < 0 ? prevSnapEl() : nextSnapEl();
-					} else {
-						scrollAmount = relativePagePos(latestDelta < 0 ? -0.5 : 0.5); // Avoid scrolling more than one whole page
-					}
-				} else {
-					if (snap) {
-						targetEl = nearestSnapEl();
-						
-					} else {
-						scrollAmount = relativePagePos(0);
-					}
-				}
-				if (snap) {
-					scrollTo(targetEl);
-				} else {
-					scroll(Math.min(Math.max(0, scrollAmount), $content[size]() - pageSize));
-				}
-				
-				$content.unbind('mousemove', touchMoveThrottled);
 				initialX = null;
+
+				$content.unbind('mousemove', touchMoveThrottled);
+
+				if (hasMomentum) {
+					if (latestDelta < 0) {
+						prev();
+					} else {
+						next();
+					}
+				} else {
+					scrollToNearestPage();
+				}
 			}
 			
 			touchMoveThrottled = throttle(touchMove);

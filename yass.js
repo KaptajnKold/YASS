@@ -22,6 +22,10 @@
 		* touch
 		* csstransforms
 		* csstransitions
+		
+	TODO:
+		
+		* There should an event for paging
 */
 
 ;(function ($, win, doc) {
@@ -102,6 +106,7 @@
 		return '';
 	}
 	
+	// FIXME: This implementation will 'swallow' the last invocation of fn.
 	function throttle (fn, context) {
 		var lastInvocation = 0, threshold = 10;
 		return function () {
@@ -136,7 +141,7 @@
 			$el = $(el),
 			options = $.extend({}, defaultOptions, $.fn.yass.options, (userOptions || {})),
 			selectors = $.extend({}, defaultSelectors, $.fn.yass.selectors, (options.selectors || {})),
-			$viewport = $(selectors.viewport, $el),
+			$viewport = $(selectors.viewport, $el), // Maybe we should allow $el to be the viewport?
 			$content = $(selectors.content, $el),
 			$noContent = $(selectors.noContent, $el),
 			$pagingLinks = $(selectors.paging, $el),
@@ -346,11 +351,6 @@
 			scroll(0);
 		}
 
-		function content ($freshContent) {
-			$content.empty().append($freshContent).show();
-			refresh();
-		}
-		
 		function enableTransition () {
 			$content.css(cssTransitionProperty, '');
 		}
@@ -484,7 +484,6 @@
 		}
 
 		// Public methods;
-		this.content = content;
 		this.scrollTo = scrollTo;
 		this.scrollIntoView = scrollIntoView;
 		this.prev = prev;

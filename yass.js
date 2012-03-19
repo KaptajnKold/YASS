@@ -100,8 +100,8 @@
 		// Nothing found so far? Webkit does not enumerate over the CSS properties of the style object.
 		// However (prop in style) returns the correct value, so we'll have to test for
 		// the precence of a specific property
-		if('WebkitOpacity' in someScript.style) return 'Webkit';
-		if('KhtmlOpacity' in someScript.style) return 'Khtml';
+		if('WebkitOpacity' in someScript.style) { return 'Webkit'; }
+		if('KhtmlOpacity' in someScript.style) { return 'Khtml'; }
 
 		return '';
 	}
@@ -119,7 +119,7 @@
 	
 	// From: http://javascript.crockford.com/remedial.html
 	function supplant (o) {
-	    return this.replace(/{([^{}]*)}/g,
+	    return this.replace(/\{([^\{\}]*)\}/g,
 	        function (a, b) {
 	            var r = o[b];
 	            return typeof r === 'string' || typeof r === 'number' ? r : a;

@@ -8,7 +8,9 @@
 	Copyright 2011–2012 Adam Lett
 	License: MIT http://www.opensource.org/licenses/mit-license.php
 	
-	Version: 0.3.0
+	Version: 0.4.0
+	
+	Github: https://github.com/KaptajnKold/YASS
 	
 	Dependencies:
 	-------------
@@ -157,7 +159,7 @@
 			size = verticalPaging ? 'height' : 'width',
 			translationDirection = verticalPaging ? 'translateY' : 'translateX',
 			
-			pageSize = $viewport[size](),
+			pageSize = $viewport[size].bind($viewport),
 						
 			scrollPos = cssTransformsSupported ? function () {
 				var 
@@ -174,13 +176,21 @@
 			} : function (pos) {
 				$content.css(scrollDirection, -pos);
 			};
-					
+			
+		function enableTransition () {
+			$content.css(cssTransitionProperty, '');
+		}
+        
+		function disableTransition () {
+			$content.css(cssTransitionProperty, 'none');
+		}
+		
 		function pageCount () {
-			return $content[size]()/pageSize;
+			return $content[size]()/pageSize();
 		}
 
 		function currentPage () {
-			return scrollPos()/pageSize;
+			return scrollPos()/pageSize();
 		}
 
 		function updatePaging () {
@@ -202,27 +212,49 @@
 			return el ? $(el).offset()[scrollDirection] - $content.offset()[scrollDirection] : 0;
 		}
 		
+		function pagePos (page) {
+			var maxPageIndex = pageCount() - 1;
+			if (page < 0) {
+				return 0;
+			}
+			if (page > maxPageIndex) {
+				return maxPageIndex*pageSize();
+			}
+			return Math.round(page)*pageSize();
+		}
+		
 		function maxScrollPos () {
-			return $content[size]() - pageSize;
+			var excessContent = $content[size]() - pageSize();
+			return excessContent > 0 ? excessContent : 0;
+		}
+		
+		function targetAdjuster (targetPos) {
+			var max = maxScrollPos();
+			if (targetPos < 0) {
+				return 0;
+			} else if ( targetPos > max) {
+				return max;
+			}
+			return targetPos;
 		}
 		
 		function scroll (targetPos) {
-			var pos = scrollPos(), max = maxScrollPos();
-			if (targetPos < 0) {
-				targetPos = -Math.round(Math.pow(-targetPos, 4/5));
-			} else if ( targetPos > max) {
-				targetPos = max + Math.round(Math.pow(targetPos - max, 4/5));
-			}
+			var pos = scrollPos();
+			targetPos = targetAdjuster(targetPos);
 			if ( pos === targetPos ) { return; }
 			setScrollPos(targetPos);
 			$el.trigger('scroll');
 		}
 
-		function scrollTo (targetElem) {
+		function scrollToElement (targetElem) {
 			scroll( Math.min( Math.max(0, pos(targetElem)), maxScrollPos() ) );
 			if (targetElem && typeof options.onScrollTo === 'function') {
 				options.onScrollTo(targetElem);
 			}
+		}
+		
+		function scrollToPage (pageNumber) {
+			scroll(pagePos(pageNumber));
 		}
 
 		function scrollBy (delta) {
@@ -242,30 +274,17 @@
 			}
 
 			// Check right/bottom edge next
-			targetEdge += $(target).outerWidth();
-			viewportEdge += pageSize;
+			targetEdge += $(target).outerWidth(true);
+			viewportEdge += pageSize();
 			delta = targetEdge - viewportEdge;
 
 			if (0 < delta) {
 				scrollBy(delta);
 			}
 		}
-		
-		function relativePagePos (n) {
-			var 
-				page = currentPage() + n,
-				maxPageIndex = pageCount() - 1;
-			if (page < 0) {
-				return 0;
-			}
-			if (page > maxPageIndex) {
-				return maxPageIndex*pageSize;
-			}
-			return Math.round(page)*pageSize;
-		}
-		
+
 		function scrollPage (n) {
-			scroll(relativePagePos(n));
+			scroll(pagePos(currentPage() + n));
 		}
 
 		function prevSnapEl () {
@@ -293,31 +312,31 @@
 		function prev () {
 			var hasSnap = $(selectors.snapTo).length > 0;
 			if (hasSnap) {
-				scrollTo(prevSnapEl());
+				scrollToElement(prevSnapEl());
 			} else {
-				scrollPage(-0.5);
+				scrollPage(-0.51);
 			}
 		}
 		
 		function next () {
 			var hasSnap = $(selectors.snapTo).length > 0;
 			if (hasSnap) {
-				scrollTo(nextSnapEl());
+				scrollToElement(nextSnapEl());
 			} else {
-				scrollPage(0.5);
+				scrollPage(0.51);
 			}
 		}
 		
 		function scrollToNearestPage () {
 			var hasSnap = $(selectors.snapTo).length > 0;
 			if (hasSnap) {
-				scrollTo(nearestSnapEl());
+				scrollToElement(nearestSnapEl());
 			} else {
 				scrollPage(0);
 			}
 			
 		}
-				
+
 		function renderNav () {
 			if ($pagingLinks.length === 0) { return; }
 			var 
@@ -333,7 +352,6 @@
 			} else {
 				$pagingLinks.hide();
 			}
-			updatePaging();
 		}
 
 		function toggleContentNoContent () {
@@ -347,43 +365,60 @@
 
 		function refresh () {
 			toggleContentNoContent();
-			renderNav();
+			disableTransition();
 			scroll(0);
-		}
-
-		function enableTransition () {
-			$content.css(cssTransitionProperty, '');
+			enableTransition();
+			renderNav();
+			updatePaging();
 		}
 		
-		function disableTransition () {
-			$content.css(cssTransitionProperty, 'none');
+		function applyElasticEffect (targetPos) {
+			var max = maxScrollPos();
+			if (targetPos < 0) {
+				return -Math.round(Math.pow(-targetPos, 4/5));
+			} else if ( targetPos > max) {
+				return max + Math.round(Math.pow(targetPos - max, 4/5));
+			}
+			return targetPos;
 		}
 
 		function initTouch () {
 			// TODO: Support vertical scrolling
-			var initialX, latestDelta, initialScrollPos, hasMomentum;
+			var initialX, initialY, latestDelta, initialScrollPos, hasMomentum, oldtargetAdjuster, wasIntentional;
 			
 			function touchStart (e) {
 				disableTransition();
 				initialX = e.originalEvent.targetTouches[0].pageX;
+				initialY = e.originalEvent.targetTouches[0].pageY;
 				initialScrollPos = scrollPos();
+				oldtargetAdjuster = targetAdjuster;
+				targetAdjuster = applyElasticEffect;
 			}
 
 			function touchMove (e) {
 				var 
 					x = e.originalEvent.targetTouches[0].pageX,
-					delta = initialX - x;
+					y = e.originalEvent.targetTouches[0].pageY,
+					deltaX = initialX - x,
+					deltaY = initialY - y;
+					
+				wasIntentional = wasIntentional == null ? Math.abs(deltaX) >= Math.abs(deltaY) : wasIntentional;
+				if (!wasIntentional) {
+					return;
+				}
 				
 				e.preventDefault();
-				hasMomentum = Math.abs(delta) - Math.abs(latestDelta) > 5;
-				latestDelta = delta;
-				scroll(initialScrollPos + delta);
+				hasMomentum = Math.abs(deltaX) - Math.abs(latestDelta) > 5;
+				latestDelta = deltaX;
+				scroll(initialScrollPos + deltaX);
 			}
 
 			function touchEnd (e) {
 				enableTransition();
 				initialX = null;
 
+				targetAdjuster = oldtargetAdjuster;
+				
 				if (hasMomentum) {
 					if (latestDelta < 0) {
 						prev();
@@ -393,8 +428,12 @@
 				} else {
 					scrollToNearestPage();
 				}
+				
+				wasIntentional = null;
+				hasMomentum = false;
+				latestDelta = 0;
 			}
-						
+			
 			$content.bind('touchstart', touchStart);
 			$content.bind('touchmove', throttle(touchMove));
 			$content.bind('touchend', touchEnd);
@@ -440,6 +479,9 @@
 				} else {
 					scrollToNearestPage();
 				}
+				
+				hasMomentum = false;
+				latestDelta = 0;
 			}
 			
 			touchMoveThrottled = throttle(touchMove);
@@ -466,11 +508,15 @@
 			});
 			
 			$pagingLinks.delegate('li', buttonEvent, function (e) {
-				scroll($(this).index() * pageSize);
+				scroll($(this).index() * pageSize());
 			});
 			
 			if (cssTransitionsSupported) {
-				$content.bind(transitionEndEvent, function () {
+				$content.bind(transitionEndEvent, function (e) {
+					
+					// We are not interested in events from other elements
+					if ( !$content.is(e.target) ) { return; }
+					
 					updatePaging();
 					if (typeof options.onTransitionEnd === 'function') {
 						options.onTransitionEnd();
@@ -484,30 +530,38 @@
 		}
 
 		// Public methods;
-		this.scrollTo = scrollTo;
+		this.scrollToElement = scrollToElement;
+		this.scrollToPage = scrollToPage;
 		this.scrollIntoView = scrollIntoView;
 		this.prev = prev;
 		this.next = next;
 		this.refresh = refresh;
+		this.currentPage = currentPage;
 		
 		init();
 		return this;
 	}
 	
 	$.fn.yass = function (method) {
-		var args = [].slice.apply(arguments);
+		var 
+			args = [].slice.apply(arguments),
+			returnValue;
 
 		this.each(function () {
 			var plugin = $(this).data('yass');
 			if (plugin && typeof args[0] === 'string' && typeof plugin[args[0]] === "function") {
-				plugin[args[0]].apply(plugin, args.slice(1));
+				// If a method returns a value, we only return that value for the first element in the jQuery collection
+				returnValue = typeof returnValue === "undefined" ? plugin[args[0]].apply(plugin, args.slice(1)): returnValue;
 			} else {
 				plugin = new Yass(this, args[0]);
 				$(this).data('yass', plugin);
 			}
 		});
 		
-		return this;
+		if (typeof returnValue === "undefined") {
+			return this;
+		}
+		return returnValue;
 	};
 	
 	$.fn.yass.selectors = {};

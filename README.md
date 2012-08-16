@@ -24,7 +24,7 @@ Dependencies:
 	* `csstransitions`
 
 This plugin depends on features in EcmaScript 5. 
-If you need to support a browser that does not off ES5 support, 
+If you need to support a browser that does not offer ES5 support, 
 you will need to include a library like es5-shim 
 (https://github.com/kriskowal/es5-shim) on the page.
 
@@ -40,8 +40,8 @@ As much as possible, YASS will try not to create a bunch of elements in the DOM 
 The minimum number of elements needed for a YASS slide show is 3: A container, a viewport element and a content element:
 
 	<div id="my-slideshow">
-		<div class=".yass-viewport">
-			<div class=".yass-content">...</div>
+		<div class="yass-viewport">
+			<div class="yass-content">...</div>
 		</div>
 	</div>
 	
@@ -58,8 +58,8 @@ The content is whatever you want presented by the slide show. In order to have a
 If you want to be able to actually slide your content, you have to provide YASS with a few more elements:
 
 	<div id="my-slideshow">
-		<div class=".yass-viewport">
-			<div class=".yass-content">...</div>
+		<div class="yass-viewport">
+			<div class="yass-content">...</div>
 		</div>
 		<div class="yass-nav-prev">Previous Page</div>
 		<div class="yass-nav-next">Next Page</div>
@@ -106,3 +106,12 @@ Methods
 * `prev()` – Scroll to previous page.
 * `next()` – Scroll to next page.
 * `refresh()` – Instruct YASS to recalculate dimensions of content, number of pages etc. Call this if you changed the content after YASS has been instantiated or since you last called `refresh()`.
+
+Examples
+========
+
+The project has a folder with examples on how to accomplish different things with YASS. Check these out to find out how to:
+
+- Use your own custom classes instead of the default ones YASS expects.
+- Use pagination bullets instead of or in conjunction with next and previous buttons.
+- Create a responsive slider

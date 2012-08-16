@@ -196,12 +196,15 @@
 		function updatePaging () {
 			var 
 				current = Math.ceil(currentPage()) + 1,
-				total = Math.ceil(pageCount());
+				total = Math.ceil(pageCount()),
+				isFirstPage = current === 1,
+				isLastPage = current === total;
+				
 			$('li.current', $pagingLinks).removeClass('current');
-			$('li:nth-child(' + current + ')', $pagingLinks).addClass('current');
+			$('li:nth-child(' + current + ')', $pagingLinks).addClass('current'),
 			
-			$prev.toggleClass(cssClasses.disabled, current === 1);
-			$next.toggleClass(cssClasses.disabled, current === total);
+			$prev.toggleClass(cssClasses.disabled, isFirstPage).attr('tabindex', isFirstPage ? -1 : 0);
+			$next.toggleClass(cssClasses.disabled, isLastPage).attr('tabindex', isLastPage ? -1 : 0);
 			
 			$currentPage.text(current);
 			$totalPages.text(total);
@@ -489,6 +492,13 @@
 			$content.bind('mouseup', touchEnd);
 		}
 		
+		function handleEnter (e) {
+			var keyCode = e.keyCode;
+			if (keyCode === 10 || keyCode === 13) {
+				$(this).trigger(buttonEvent);
+				e.preventDefault();
+			}
+		}
 		
 		function init() {
 			if (isTouchScreen && options.touch) {
@@ -500,15 +510,26 @@
 			$next.bind(buttonEvent, function (e) {
 				e.preventDefault();
 				next();
-			});
+			}).bind('keypress', handleEnter);
 			
 			$prev.bind(buttonEvent, function (e) {
 				e.preventDefault();
 				prev();
-			});
+			}).bind('keypress', handleEnter);
 			
 			$pagingLinks.delegate('li', buttonEvent, function (e) {
 				scroll($(this).index() * pageSize());
+			});
+
+			$el.bind('keyup', function handleArrows (e) {
+				var keyCode = e.keyCode;
+				if (keyCode === 37) {
+					prev();
+					e.preventDefault();
+				} else if (keyCode === 39) {
+					next();
+					e.preventDefault();
+				}
 			});
 			
 			if (cssTransitionsSupported) {

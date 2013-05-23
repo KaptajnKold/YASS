@@ -1,0 +1,7 @@
+{
+  "name": "yass",
+  "version": "0.1.0",
+  "dependencies": {
+    "jquery": ">= 1.7"
+  }
+}
